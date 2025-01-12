@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import type { RequestHandler } from 'express';
 import { compare, hash } from 'bcryptjs';
-import { signJwt } from '@/lib/jwt';
+import { signJwt } from '@/lib/utils';
 import { cleanUser } from '@/lib/utils';
 
 export const signupController: RequestHandler = async (req, res, next) => {
@@ -17,11 +17,7 @@ export const signupController: RequestHandler = async (req, res, next) => {
       data: { name, email, password: hashedPw },
     });
 
-    res.status(201).json({
-      message: 'User created',
-      token: signJwt(newUser),
-      user: cleanUser(newUser),
-    });
+    res.status(201).json({ token: signJwt(newUser), user: cleanUser(newUser) });
   } catch (error) {
     next(error);
   }
@@ -43,11 +39,7 @@ export const loginController: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    res.json({
-      message: 'Login successful',
-      token: signJwt(user),
-      user: cleanUser(user),
-    });
+    res.json({ token: signJwt(user), user: cleanUser(user) });
   } catch (error) {
     next(error);
   }

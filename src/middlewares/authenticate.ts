@@ -1,4 +1,4 @@
-import { verifyJwt } from '@/lib/jwt';
+import { verifyJwt } from '@/lib/utils';
 import type { RequestHandler } from 'express';
 import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 
