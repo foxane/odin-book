@@ -9,7 +9,6 @@ app.use(cors());
 app.use(express.json());
 app.use('/auth', authRouter);
 
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
 const server = createServer(app);
 setupSocketServer(server);
 

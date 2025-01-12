@@ -16,3 +16,8 @@ export const verifyJwt = async (token: string): Promise<User | null> => {
   const { id } = jwt.verify(token, SECRET) as { id: string };
   return prisma.user.findUnique({ where: { id } });
 };
+
+export const cleanUser = (user: User) => {
+  const { password, ...cleanedUser } = user;
+  return cleanedUser;
+};
