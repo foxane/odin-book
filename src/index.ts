@@ -1,13 +1,15 @@
 import { createServer } from 'http';
 import express from 'express';
+import cors from 'cors';
 import setupSocketServer from './socket';
+import authRouter from '@/routes/authRouter';
 
 const app = express();
+app.use(cors());
+app.use(express.json());
+app.use('/auth', authRouter);
 
-app.get('/', (_req, res) => {
-  res.send('Http work!');
-});
-
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
 const server = createServer(app);
 setupSocketServer(server);
 

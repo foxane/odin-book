@@ -27,7 +27,7 @@
     // Module mapping
     "baseUrl": ".",
     "paths": {
-      "@src/*": ["./src/*"]
+      "@/*": ["./src/*"]
     }
   }
 }
