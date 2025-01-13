@@ -22,6 +22,7 @@ export default tseslint.config(
         'error',
         { ignoreRestSiblings: true },
       ],
+      '@typescript-eslint/no-misused-promises': 'off',
     },
   },
 );

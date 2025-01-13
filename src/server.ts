@@ -1,9 +1,8 @@
 import { createServer } from 'http';
-import setupSocketServer from './socket';
+import setupSocketServer from '@/socket';
 import app from '@/app';
-import { getLocalNetworkIP } from './lib/utils';
+import { getLocalNetworkIP } from '@/lib/utils';
 
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
 const server = createServer(app);
 setupSocketServer(server);
 
