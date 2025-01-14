@@ -6,8 +6,8 @@ console.log(`
     ==========================================
     🧪 Test starting..
     ==========================================
-    🌐 Database: ${DATABASE_URL ?? 'Not Set'}
-    🔒 JWT Secret: ${JWT_SECRET ?? 'Not Set'}
+    🌐 Database: ${DATABASE_URL}
+    🔒 JWT Secret: ${JWT_SECRET}
     🛠️ Environment: ${NODE_ENV ?? 'Undefined'}
     ==========================================
 `);

@@ -1,13 +1,16 @@
 import { createServer } from 'http';
 import setupSocketServer from '@/socket';
 import app from '@/app';
-import { getLocalNetworkIP } from '@/lib/utils';
+import { getLocalNetworkIP, verifyEnvironmentVariables } from '@/lib/utils';
 
+// Setup and verify env var
+verifyEnvironmentVariables();
+const PORT = process.env.PORT ?? 3000;
+const ENV = process.env.NODE_ENV ?? 'development';
+
+// Create http and socket instance
 const server = createServer(app);
 setupSocketServer(server);
-
-const PORT = process.env.PORT || 3000;
-const ENV = process.env.NODE_ENV ?? 'development';
 
 server.listen(PORT, () => {
   console.log(`

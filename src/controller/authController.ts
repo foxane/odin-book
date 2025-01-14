@@ -3,6 +3,7 @@ import type { RequestHandler } from 'express';
 import { compare, hash } from 'bcryptjs';
 import { signJwt } from '@/lib/utils';
 import { cleanUser } from '@/lib/utils';
+import type { User } from '@prisma/client';
 
 export const signupController: RequestHandler = async (req, res, next) => {
   const { name, email, password } = req.body as {
@@ -43,4 +44,9 @@ export const loginController: RequestHandler = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+export const oAuthCallback: RequestHandler = (req, res) => {
+  const { user } = req;
+  res.json({ token: signJwt(user as User), user: cleanUser(user as User) });
 };

@@ -1,11 +1,15 @@
-declare namespace NodeJS {
-  interface ProcessEnv {
-    readonly JWT_SECRET?: string;
-    readonly DATABASE_URL?: string;
-    readonly PORT: number;
+declare module 'bun' {
+  interface Env {
+    readonly PORT?: number;
+    readonly DATABASE_URL: string;
+    readonly JWT_SECRET: string;
 
-    readonly CALLBACK_URL: string;
+    readonly OAUTH_CALLBACK_URI: string;
+
     readonly GITHUB_CLIENT_ID: string;
     readonly GITHUB_CLIENT_SECRET: string;
+
+    readonly GOOGLE_CLIENT_ID: string;
+    readonly GOOGLE_CLIENT_SECRET: string;
   }
 }
