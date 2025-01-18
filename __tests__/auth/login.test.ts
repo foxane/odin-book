@@ -9,6 +9,7 @@ const user: User = {
   name: 'test',
   email: 'test@email.com',
   password: 'test',
+  avatar: null,
 };
 
 describe('Login', async () => {

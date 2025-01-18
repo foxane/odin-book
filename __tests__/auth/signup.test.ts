@@ -9,6 +9,7 @@ const user: User = {
   name: 'test',
   email: `${Math.floor(Math.random()).toString()}test@email.com`,
   password: 'test',
+  avatar: null,
 };
 
 describe('Signup', () => {
