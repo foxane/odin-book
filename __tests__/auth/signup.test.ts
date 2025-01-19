@@ -1,8 +1,9 @@
-import { test, expect, describe } from 'bun:test';
+import { test, expect, describe, afterAll } from 'bun:test';
 import request from 'supertest';
 import app from '@/app';
 import type { User } from '@prisma/client';
-import type { AuthResponse, AuthResponseError } from '../types';
+import type { AuthResponse, AuthResponseError } from '@/@types/test';
+import { prisma } from '@/lib/prisma';
 
 const user: User = {
   id: 'test',
@@ -13,6 +14,10 @@ const user: User = {
 };
 
 describe('Signup', () => {
+  afterAll(async () => {
+    await prisma.user.deleteMany();
+  });
+
   test('should send user data and token', async () => {
     const response = await request(app).post('/auth/signup').send(user);
     const data = response.body as AuthResponse;

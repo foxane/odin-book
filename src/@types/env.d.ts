@@ -1,4 +1,4 @@
-import type { User } from '@prisma/client';
+import type { User as PrismaUser } from '@prisma/client';
 
 declare module 'bun' {
   interface Env {
@@ -18,8 +18,7 @@ declare module 'bun' {
 
 declare global {
   namespace Express {
-    interface Request {
-      user?: User;
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    interface User extends PrismaUser {}
   }
 }

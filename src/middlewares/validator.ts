@@ -61,3 +61,37 @@ export const loginValidator = [
 
   validate,
 ];
+
+export const userUpdateValidator = [
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 3, max: 20 })
+    .withMessage('Name can only between 3 and 20 characters'),
+
+  body('email')
+    .optional()
+    .trim()
+    .isEmail()
+    .withMessage('Invalid email address')
+    .normalizeEmail({ all_lowercase: true })
+    .custom(async (value: string, { req }) => {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: value },
+      });
+
+      /**
+       * Check wether the email is connected to same user that currently being edited
+       * yes = go ahead, no = go away
+       */
+      if (req.params && existingUser && existingUser.id !== req.params['id']) {
+        throw new Error('Email already in use');
+      }
+
+      return true;
+    }),
+
+  body('avatar').optional().trim().isURL(),
+
+  validate,
+];
