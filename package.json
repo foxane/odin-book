@@ -14,6 +14,8 @@
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
     "passport": "^0.7.0",
+    "passport-github2": "^0.1.12",
+    "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "socket.io": "^4.8.1"
@@ -24,10 +26,11 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.7",
     "@types/passport": "^1.0.17",
+    "@types/passport-github2": "^1.2.9",
+    "@types/passport-google-oauth20": "^2.0.16",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
     "prisma": "^6.2.1",
-    "supertest": "^7.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   }

@@ -5,7 +5,8 @@ import cors from 'cors';
 import setupSocketServer from '@/socket';
 import { checkEnv } from '@/lib/utils';
 import routes from '@/routes';
-import { initializePassport } from 'passport';
+import { initializePassport } from '@/passport/passport';
+import { errorMiddleware } from '@/middleware/error';
 
 const app = express();
 
@@ -13,6 +14,9 @@ app.use(cors());
 app.use(express.json());
 
 app.use(routes);
+
+app.use(errorMiddleware);
+
 initializePassport();
 checkEnv();
 const port = process.env.PORT ?? 3000;

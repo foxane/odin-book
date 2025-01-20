@@ -7,6 +7,8 @@ import { cleanUser, signJwt } from '@/lib/utils';
 export const login: RequestHandler = (_req, res, next) => {
   passport.authenticate(
     'local',
+    { session: false },
+
     (err: unknown, user: User, info: { message: string }) => {
       if (err) {
         next(err);
@@ -22,3 +24,26 @@ export const login: RequestHandler = (_req, res, next) => {
     },
   );
 };
+
+/**
+ * Array of handler, first one will determine which provider to authenticate
+ * the second will send token and user data
+ */
+export const OAuthCallback: RequestHandler[] = [
+  (req, res, next) => {
+    const provider = req.query['provider'] as string;
+    const allowed = ['github'];
+
+    if (!allowed.includes(provider)) {
+      res.status(400).json({ message: 'Invalid OAuth provider' });
+      return;
+    }
+
+    passport.authenticate(provider, { session: false })(req, res, next);
+  },
+
+  (req, res) => {
+    const user = req.user as User;
+    res.json({ token: signJwt(user), user: cleanUser(user) });
+  },
+];

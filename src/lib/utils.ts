@@ -9,13 +9,13 @@ export const checkEnv = () => {
     'JWT_SECRET',
     'DATABASE_URL',
 
-    // 'OAUTH_CALLBACK_URI',
+    'OAUTH_CALLBACK_URI',
 
-    // 'GITHUB_CLIENT_ID',
-    // 'GITHUB_CLIENT_SECRET',
+    'GITHUB_CLIENT_ID',
+    'GITHUB_CLIENT_SECRET',
 
-    // 'GOOGLE_CLIENT_ID',
-    // 'GOOGLE_CLIENT_SECRET',
+    'GOOGLE_CLIENT_ID',
+    'GOOGLE_CLIENT_SECRET',
   ];
 
   for (const e of needed) {

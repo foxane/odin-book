@@ -11,7 +11,7 @@ const opts: IStrategyOptions = {
 export const local = new Local(opts, async (email, password, done) => {
   try {
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return done(null, false);
+    if (!user) return done(null, false, { message: 'Invalid credentials' });
 
     /**
      * User may signed up using OAuth
@@ -20,7 +20,7 @@ export const local = new Local(opts, async (email, password, done) => {
       throw Error('Credentials login is not available for this account');
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (isMatch) done(null, user);
+    if (isMatch) done(null, user, { message: 'Invalid credentials' });
     else done(null, false);
   } catch (error) {
     done(error);

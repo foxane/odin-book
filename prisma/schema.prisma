@@ -21,6 +21,7 @@ model User {
 }
 
 model OAuth {
+  id       String @id
   user     User   @relation(fields: [userId], references: [id])
   userId   String @unique
   provider String
