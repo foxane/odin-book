@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/prismaClient';
 import type { RequestHandler } from 'express';
 import { body, validationResult } from 'express-validator';
 
@@ -17,7 +17,7 @@ const validate: RequestHandler = (req, res, next) => {
   next();
 };
 
-export const signupValidator = [
+export const signup = [
   body('name')
     .trim()
     .notEmpty()
@@ -50,7 +50,7 @@ export const signupValidator = [
   validate,
 ];
 
-export const loginValidator = [
+export const login = [
   body('email')
     .trim()
     .isEmail()
@@ -62,7 +62,7 @@ export const loginValidator = [
   validate,
 ];
 
-export const userUpdateValidator = [
+export const userUpdate = [
   body('name')
     .optional()
     .trim()

@@ -1,9 +1,10 @@
 {
-  "name": ".",
-  "module": "src/server.ts",
+  "name": "odinbook-api",
+  "module": "src/app.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun --watch src/server.ts"
+    "dev": "tsx watch --env-file=.env src/app.ts",
+    "test": "node --test ./test/**/*"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",
@@ -13,27 +14,21 @@
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
     "passport": "^0.7.0",
-    "passport-github2": "^0.1.12",
-    "passport-google-oauth20": "^2.0.0",
+    "passport-jwt": "^4.0.1",
+    "passport-local": "^1.0.0",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.18.0",
     "@types/bcryptjs": "^2.4.6",
-    "@types/bun": "latest",
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/node": "^22.10.5",
+    "@types/node": "^22.10.7",
     "@types/passport": "^1.0.17",
-    "@types/passport-github2": "^1.2.9",
-    "@types/passport-google-oauth20": "^2.0.16",
-    "@types/supertest": "^6.0.2",
-    "eslint": "^9.18.0",
+    "@types/passport-jwt": "^4.0.1",
+    "@types/passport-local": "^1.0.38",
     "prisma": "^6.2.1",
     "supertest": "^7.0.0",
-    "typescript-eslint": "^8.19.1"
-  },
-  "peerDependencies": {
+    "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   }
 }
