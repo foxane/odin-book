@@ -16,6 +16,11 @@ routes.get(
   passport.authenticate('github', { scope: ['read:user'] }),
 );
 
+routes.get(
+  '/auth/google',
+  passport.authenticate('google', { scope: ['email', 'profile'] }),
+);
+
 /**
  * Handle all OAuth callback regardless provider
  */

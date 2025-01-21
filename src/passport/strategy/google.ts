@@ -1,11 +1,10 @@
+import { prisma } from '@/lib/prismaClient';
+import type { User } from '@prisma/client';
 import {
-  Strategy as Github,
+  Strategy,
   type Profile,
   type StrategyOptions,
-} from 'passport-github2';
-import type { User } from '@prisma/client';
-
-import { prisma } from '@/lib/prismaClient';
+} from 'passport-google-oauth20';
 
 type VerifyCallback = (
   token: string,
@@ -15,9 +14,9 @@ type VerifyCallback = (
 ) => void;
 
 const opts: StrategyOptions = {
-  clientID: process.env.GITHUB_CLIENT_ID,
-  clientSecret: process.env.GITHUB_CLIENT_SECRET,
-  callbackURL: process.env.OAUTH_CALLBACK_URI + '?provider=github',
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: process.env.OAUTH_CALLBACK_URI + '?provider=google',
 };
 
 const verify: VerifyCallback = async (_t, _r, profile, done) => {
@@ -30,10 +29,10 @@ const verify: VerifyCallback = async (_t, _r, profile, done) => {
 
     const newUser = await prisma.user.create({
       data: {
-        name: profile.displayName ?? profile.username,
+        name: profile.displayName,
         email: profile.emails ? profile.emails[0].value : profile.id,
         avatar: profile.photos ? profile.photos[0].value : null,
-        provider: { create: { id: profile.id, provider: 'github' } },
+        provider: { create: { id: profile.id, provider: 'google' } },
       },
     });
 
@@ -43,4 +42,4 @@ const verify: VerifyCallback = async (_t, _r, profile, done) => {
   }
 };
 
-export const github = new Github(opts, verify);
+export const google = new Strategy(opts, verify);

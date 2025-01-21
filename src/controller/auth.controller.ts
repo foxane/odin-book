@@ -32,7 +32,7 @@ export const login: RequestHandler = (_req, res, next) => {
 export const OAuthCallback: RequestHandler[] = [
   (req, res, next) => {
     const provider = req.query['provider'] as string;
-    const allowed = ['github'];
+    const allowed = ['github', 'google'];
 
     if (!allowed.includes(provider)) {
       res.status(400).json({ message: 'Invalid OAuth provider' });
