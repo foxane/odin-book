@@ -20,8 +20,8 @@ export const local = new Local(opts, async (email, password, done) => {
       throw Error('Credentials login is not available for this account');
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (isMatch) done(null, user, { message: 'Invalid credentials' });
-    else done(null, false);
+    if (isMatch) done(null, user);
+    else done(null, false, { message: 'Invalid credentials' });
   } catch (error) {
     done(error);
   }

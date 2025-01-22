@@ -2,7 +2,12 @@ import type { RequestHandler } from 'express';
 import bcrypt from 'bcryptjs';
 
 import { prisma } from '@/lib/prismaClient';
-import { cleanUser, signJwt } from '@/lib/utils';
+import {
+  cleanManyUser,
+  cleanUser,
+  createUserFilter,
+  signJwt,
+} from '@/lib/utils';
 
 export const createUser: RequestHandler = async (req, res, next) => {
   const { name, email, password } = req.body as {
@@ -18,6 +23,19 @@ export const createUser: RequestHandler = async (req, res, next) => {
     });
 
     res.status(200).json({ token: signJwt(newUser), user: cleanUser(newUser) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllUser: RequestHandler = async (req, res, next) => {
+  const { name, take, page } = req.query;
+
+  try {
+    const users = await prisma.user.findMany(
+      createUserFilter({ name, take, page }),
+    );
+    res.json(cleanManyUser(users));
   } catch (error) {
     next(error);
   }

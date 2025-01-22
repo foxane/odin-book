@@ -1,8 +1,4 @@
-import {
-  Strategy as Github,
-  type Profile,
-  type StrategyOptions,
-} from 'passport-github2';
+import { Strategy, type Profile, type StrategyOptions } from 'passport-github2';
 import type { User } from '@prisma/client';
 
 import { prisma } from '@/lib/prismaClient';
@@ -43,4 +39,4 @@ const verify: VerifyCallback = async (_t, _r, profile, done) => {
   }
 };
 
-export const github = new Github(opts, verify);
+export const github = new Strategy(opts, verify);

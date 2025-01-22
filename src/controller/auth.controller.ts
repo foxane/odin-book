@@ -4,11 +4,10 @@ import passport from 'passport';
 
 import { cleanUser, signJwt } from '@/lib/utils';
 
-export const login: RequestHandler = (_req, res, next) => {
+export const login: RequestHandler = (req, res, next) => {
   passport.authenticate(
     'local',
     { session: false },
-
     (err: unknown, user: User, info: { message: string }) => {
       if (err) {
         next(err);
@@ -22,7 +21,7 @@ export const login: RequestHandler = (_req, res, next) => {
 
       res.json({ token: signJwt(user), user: cleanUser(user) });
     },
-  );
+  )(req, res, next);
 };
 
 /**

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import type { User } from '@prisma/client';
+import type { Prisma, User } from '@prisma/client';
 
 export const checkEnv = () => {
   let abort = false;
@@ -47,4 +47,51 @@ export const signJwt = (user: User) => {
 export const cleanUser = (user: User) => {
   const { password, ...cleanedUser } = user;
   return cleanedUser;
+};
+
+/**
+ * Wrapper for cleanUser to clean many users
+ * @param users Array of users
+ * @returns Array of cleaned users
+ */
+export const cleanManyUser = (users: User[]) => {
+  const res = [];
+  for (const user of users) {
+    res.push(cleanUser(user));
+  }
+
+  return res;
+};
+
+/**
+ * Creates a filter object for querying users with optional name filtering and pagination.
+ *
+ * @param {object} query - The query parameters for filtering and pagination.
+ * @param {string} [query.name] - A string to filter users by name using a "contains" condition.
+ * @param {string | number} [query.take] - The number of users to fetch per page (pagination size).
+ * @param {string | number} [query.page] - The current page number for pagination (1-based index).
+ *
+ * @returns {Prisma.UserFindManyArgs} - A Prisma query object with filtering (`where`), pagination (`take` and `skip`) properties.
+ */
+export const createUserFilter = (query: any): Prisma.UserFindManyArgs => {
+  // Filter
+  const where: Prisma.UserWhereInput = {};
+  if (query.name) where.name = { contains: query.name };
+
+  // Pagination
+  const take = query.take ? parseInt(query.take) : 0;
+  let skip = 0;
+
+  if (take && query.page && !isNaN(query.page)) {
+    const page = parseInt(query.page);
+    skip = (page - 1) * take;
+  }
+
+  // Staging
+  const result: Prisma.UserFindManyArgs = {};
+  result.where = where;
+  if (skip > 0) result.skip = skip;
+  if (take > 0) result.take = take;
+
+  return result;
 };
