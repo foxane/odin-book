@@ -19,7 +19,10 @@ export const login: RequestHandler = (req, res, next) => {
         return;
       }
 
-      res.json({ token: signJwt(user), user: cleanUser(user) });
+      res.json({
+        token: signJwt(user),
+        user: cleanUser(user, { owner: true }),
+      });
     },
   )(req, res, next);
 };
@@ -43,6 +46,6 @@ export const OAuthCallback: RequestHandler[] = [
 
   (req, res) => {
     const user = req.user as User;
-    res.json({ token: signJwt(user), user: cleanUser(user) });
+    res.json({ token: signJwt(user), user: cleanUser(user, { owner: true }) });
   },
 ];

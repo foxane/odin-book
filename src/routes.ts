@@ -2,7 +2,12 @@ import { Router } from 'express';
 import passport from 'passport';
 
 import * as validate from '@/middleware/validation';
-import { createUser, getAllUser } from '@/controller/user.controller';
+import {
+  createUser,
+  getAllUser,
+  getSingleUser,
+  updateUser,
+} from '@/controller/user.controller';
 import { login, OAuthCallback } from '@/controller/auth.controller';
 
 const routes = Router();
@@ -23,6 +28,9 @@ routes.get('/auth/callback', OAuthCallback);
 
 // Protect all routes after this
 routes.use(passport.authenticate('jwt', { session: false }));
+
+// Users routes
+routes.route('/users?/:userId').get(getSingleUser).put(updateUser);
 routes.route('/users?').get(getAllUser);
 
 export default routes;

@@ -40,18 +40,45 @@ export const signJwt = (user: User) => {
 };
 
 /**
- * Clean user object from sensitive data
- * @param user Prisma User object
- * @returns User object without sensitive data
+ * Clean user object before sending it to the client
+ *
+ * @param {User} user User object from Prisma client
+ * @param {object} [options] Options to control what data to include
+ * @param {boolean} [options.owner=false] Include sensitive data accessible to the owner
+ * @param {boolean} [options.admin=false] Include all data for administrative purposes
+ * @returns Partial<User> Cleaned user object
  */
-export const cleanUser = (user: User) => {
-  const { password, ...cleanedUser } = user;
-  return cleanedUser;
+export const cleanUser = (
+  user: User,
+  options: { owner?: boolean; admin?: boolean } = {},
+): Partial<User> => {
+  const { owner = false, admin = false } = options;
+
+  // Define the base cleaned user
+  const clean: Partial<User> = {
+    id: user.id,
+    name: user.name,
+    avatar: user.avatar,
+    bio: user.bio,
+  };
+
+  // Fields for owner or admin
+  if (owner || admin) {
+    clean.email = user.email;
+  }
+
+  // Fields for admin only
+  if (admin) {
+    clean.createdAt = user.createdAt;
+  }
+
+  return clean;
 };
 
 /**
  * Wrapper for cleanUser to clean many users
- * @param users Array of users
+ *
+ * @param {User[]} users Array of users
  * @returns Array of cleaned users
  */
 export const cleanManyUser = (users: User[]) => {

@@ -81,8 +81,8 @@ export const userUpdate = [
       });
 
       /**
-       * Check wether the email is connected to same user that currently being edited
-       * yes = go ahead, no = go away
+       * Check if the email is already connected to a different user.
+       * If yes, throw an error. If no, allow the update.
        */
       if (req.params && existingUser && existingUser.id !== req.params['id']) {
         throw new Error('Email already in use');
@@ -91,7 +91,13 @@ export const userUpdate = [
       return true;
     }),
 
-  body('avatar').optional().trim().isURL(),
+  body('password')
+    .optional()
+    .trim()
+    .isLength({ min: 2 })
+    .withMessage('Password too short, need to be at least 2 characters'),
+
+  body('avatar').optional().trim().isURL().withMessage('Not a valid url'),
 
   validate,
 ];
