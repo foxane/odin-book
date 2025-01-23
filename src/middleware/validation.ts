@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prismaClient';
-import type { RequestHandler } from 'express';
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 
 const validate: RequestHandler = (req, res, next) => {
@@ -63,6 +63,34 @@ export const login = [
 ];
 
 export const userUpdate = [
+  /**
+   * Check if at least on field is provided
+   */
+  (req: Request, res: Response, next: NextFunction) => {
+    const formFields = ['name', 'email', 'password'];
+
+    const hasValidField =
+      req.body &&
+      formFields.some(
+        field =>
+          req.body[field] !== undefined &&
+          req.body[field] !== null &&
+          req.body[field].trim() !== '',
+      ) &&
+      req.files;
+
+    const hasValidFile = req.files['avatar'] || req.files['background'];
+
+    if (!hasValidField && !hasValidFile) {
+      res.status(400).json({
+        message: 'No payload, why the fuck are you sending it?',
+      });
+      return;
+    }
+
+    next();
+  },
+
   body('name')
     .optional()
     .trim()
@@ -96,8 +124,6 @@ export const userUpdate = [
     .trim()
     .isLength({ min: 2 })
     .withMessage('Password too short, need to be at least 2 characters'),
-
-  body('avatar').optional().trim().isURL().withMessage('Not a valid url'),
 
   validate,
 ];

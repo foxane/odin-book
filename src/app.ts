@@ -2,9 +2,9 @@ import { createServer } from 'node:http';
 import express from 'express';
 import cors from 'cors';
 
+import routes from '@/routes';
 import setupSocketServer from '@/socket';
 import { checkEnv } from '@/lib/utils';
-import routes from '@/routes';
 import { initializePassport } from '@/passport/passport';
 import { errorMiddleware } from '@/middleware/error';
 import { morganMiddleware } from '@/middleware/logger';
@@ -14,6 +14,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(morganMiddleware);
+app.use(express.static('upload'));
 
 app.use(routes);
 

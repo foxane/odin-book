@@ -7,6 +7,7 @@ import {
   cleanManyUser,
   cleanUser,
   createUserFilter,
+  getFileUrl,
   signJwt,
 } from '@/lib/utils';
 
@@ -52,7 +53,6 @@ export const getSingleUser: RequestHandler = async (req, res) => {
 type UserUpdatePayload = {
   name?: string;
   email?: string;
-  avatar?: string;
   password?: string;
 };
 
@@ -68,19 +68,26 @@ export const updateUser: RequestHandler = async (req, res) => {
     return;
   }
 
-  const { name, email, avatar, password } = req.body as UserUpdatePayload;
+  /**
+   * Handle avatar and bg update
+   */
+  const avatar = req.files['avatar'];
+  const background = req.files['background'];
+
+  const { name, email, password } = req.body as UserUpdatePayload;
   const hashedPw = password ? await bcrypt.hash(password, 10) : undefined;
   const newData: Prisma.UserUpdateInput = {
     ...(name && { name }),
     ...(email && { email }),
-    ...(avatar && { avatar }),
     ...(password && { password: hashedPw }),
+    ...(avatar && { avatar: getFileUrl(avatar[0]) }),
+    ...(background && { background: getFileUrl(background[0]) }),
   };
 
   /**
    * Check if no field is provided
    */
-  if (Object.keys(newData).length === 0) {
+  if (Object.keys(newData).length === 0 && !req.files) {
     res.status(400).json({
       message: 'No valid fields provided for update',
     });

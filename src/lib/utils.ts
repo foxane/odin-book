@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import type { Prisma, User } from '@prisma/client';
+import { networkInterfaces } from 'node:os';
 
 export const checkEnv = () => {
   let abort = false;
@@ -59,6 +60,7 @@ export const cleanUser = (
     id: user.id,
     name: user.name,
     avatar: user.avatar,
+    background: user.background,
     bio: user.bio,
   };
 
@@ -121,4 +123,29 @@ export const createUserFilter = (query: any): Prisma.UserFindManyArgs => {
   if (take > 0) result.take = take;
 
   return result;
+};
+
+export const getLocalIp = () => {
+  const nets = networkInterfaces();
+
+  for (const name in nets) {
+    const iFaces = nets[name];
+
+    if (!iFaces) return 'localhost';
+
+    for (const iFace of iFaces) {
+      if (iFace.family === 'IPv4' && !iFace.internal) return iFace.address;
+    }
+  }
+
+  return 'localhost'; // Fallback
+};
+
+export const getFileUrl = (file: Express.Multer.File) => {
+  const isProd = process.env.NODE_ENV === 'production';
+  const PORT = process.env.PORT ?? 3000;
+
+  if (isProd) return file.path;
+
+  return `http://${getLocalIp()}:${PORT}/${file.path}`;
 };

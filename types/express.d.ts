@@ -1,11 +1,9 @@
-import { User } from '@prisma/client';
+import type { User } from '@prisma/client';
+import type { Multer } from 'multer';
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: User;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    user: User;
+    files: { [fieldname: string]: Express.Multer.File[] };
   }
 }
-
-export {};
