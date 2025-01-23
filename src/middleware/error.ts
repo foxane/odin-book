@@ -1,10 +1,12 @@
 import type { ErrorRequestHandler } from 'express';
 import { Prisma } from '@prisma/client';
 
-export const errorMiddleware: ErrorRequestHandler = (err, _req, res, _next) => {
+import { logger } from '@/middleware/logger';
+
+export const errorMiddleware: ErrorRequestHandler = (err, req, res, _next) => {
   let statusCode = 500;
   let message = 'Internal server error';
-  console.error(err);
+  logger.error(`${req.method} ${req.url} - ${err.message}`);
 
   /**
    * Prisma related errors
