@@ -30,7 +30,7 @@ routes.get('/auth/callback', OAuthCallback);
 routes.use(passport.authenticate('jwt', { session: false }));
 
 // Users routes
-routes.route('/users?/:userId').get(getSingleUser).put(updateUser);
-routes.route('/users?').get(getAllUser);
+routes.route('/user{s}/:userId').get(getSingleUser).put(updateUser);
+routes.route('/user{s}').get(getAllUser);
 
 export default routes;
