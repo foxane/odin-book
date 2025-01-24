@@ -1,6 +1,6 @@
 import type { ErrorRequestHandler } from 'express';
 import { Prisma } from '@prisma/client';
-import { logger } from './logger';
+import { errorLogger } from './logger';
 
 export const errorMiddleware: ErrorRequestHandler = (err, req, res, _next) => {
   let statusCode = 500;
@@ -9,7 +9,7 @@ export const errorMiddleware: ErrorRequestHandler = (err, req, res, _next) => {
   /**
    * Log the error
    */
-  logger.error(`${req.method} ${req.url} - ${err.message}`, {
+  errorLogger.error(`${req.method} ${req.url} - ${err.message}`, {
     stack: err.stack,
     originalError: err,
   });
