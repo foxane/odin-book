@@ -10,6 +10,7 @@ import {
   getFileUrl,
   signJwt,
 } from '@/lib/utils';
+import { uploadToBucket } from '@/middleware/bucket';
 
 export const createUser: RequestHandler = async (req, res) => {
   const { name, email, password } = req.body as {
@@ -69,11 +70,34 @@ export const updateUser: RequestHandler = async (req, res) => {
   }
 
   /**
-   * Handle avatar and bg update
+   * Handle avatar and background update
    */
-  const avatar = req.files['avatar'];
-  const background = req.files['background'];
+  type FileField = 'avatar' | 'background';
+  const { avatar, background } = req.files;
 
+  if (process.env.NODE_ENV === 'production') {
+    const fileUploads = { avatar, background };
+
+    // Helper to upload files and update their path
+    const uploadAndSetPath = async (fileKey: FileField, userId: string) => {
+      if (fileUploads[fileKey]) {
+        const file = fileUploads[fileKey][0];
+        const url = await uploadToBucket(file, userId);
+        file.path = url;
+      }
+    };
+
+    // Prepare uploads and wait for completion
+    await Promise.all(
+      Object.keys(fileUploads).map(key =>
+        uploadAndSetPath(key as FileField, id),
+      ),
+    );
+  }
+
+  /**
+   * Update db record
+   */
   const { name, email, password } = req.body as UserUpdatePayload;
   const hashedPw = password ? await bcrypt.hash(password, 10) : undefined;
   const newData: Prisma.UserUpdateInput = {
@@ -83,16 +107,6 @@ export const updateUser: RequestHandler = async (req, res) => {
     ...(avatar && { avatar: getFileUrl(avatar[0]) }),
     ...(background && { background: getFileUrl(background[0]) }),
   };
-
-  /**
-   * Check if no field is provided
-   */
-  if (Object.keys(newData).length === 0 && !req.files) {
-    res.status(400).json({
-      message: 'No valid fields provided for update',
-    });
-    return;
-  }
 
   const user = await prisma.user.update({ where: { id }, data: newData });
   res.json({ token: signJwt(user), user: cleanUser(user, { owner: true }) });

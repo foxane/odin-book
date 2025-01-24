@@ -1,25 +1,41 @@
-import multer from 'multer';
 import { extname } from 'node:path';
+import { StorageClient } from '@supabase/storage-js';
 
-// TODO: Add cloud bucket storage
+const BUCKET_URL = `${process.env.SUPABASE_URL}/storage/v1`;
+const KEY = process.env.SUPABASE_SERVICE_KEY;
 
-const localStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, 'upload'),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = req.user.name.replace(' ', '_') + '-' + Date.now();
-    const fileName =
-      file.fieldname +
-      '-' +
-      uniqueSuffix.toLowerCase() +
-      extname(file.originalname);
-
-    cb(null, fileName);
-  },
+const storageClient = new StorageClient(BUCKET_URL, {
+  apikey: KEY,
+  Authorization: KEY,
 });
 
-export const upload = multer({
-  storage: localStorage,
-  limits: {
-    fileSize: 1024 * 1024 * 10, // 10MB
-  },
-});
+export const uploadToBucket = async (
+  file: Express.Multer.File,
+  userId: string,
+) => {
+  /**
+   * Field + name + date + extensions
+   */
+  const fileName =
+    file.fieldname +
+    '-' +
+    userId.replaceAll(' ', '_') +
+    '-' +
+    Date.now() +
+    extname(file.originalname);
+
+  const { data, error } = await storageClient
+    .from(file.fieldname)
+    .upload(fileName.toLowerCase(), file.buffer, {
+      contentType: file.mimetype,
+      upsert: true,
+    });
+
+  /**
+   * Handled by error middleware
+   */
+  if (error) throw error;
+
+  return storageClient.from(file.fieldname).getPublicUrl(data.path).data
+    .publicUrl;
+};

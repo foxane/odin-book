@@ -22,6 +22,8 @@ export const signup = [
     .trim()
     .notEmpty()
     .withMessage('Name cannot be empty')
+    .isAlphanumeric('en-US', { ignore: ' ' })
+    .withMessage('Name can only be alphanumeric')
     .isLength({ min: 3, max: 20 })
     .withMessage('Name can only between 3 and 20 characters'),
 
@@ -92,6 +94,8 @@ export const userUpdate = [
   body('name')
     .optional()
     .trim()
+    .isAlphanumeric('en-US', { ignore: ' ' })
+    .withMessage('Name can only be alphanumeric')
     .isLength({ min: 3, max: 20 })
     .withMessage('Name can only between 3 and 20 characters'),
 
