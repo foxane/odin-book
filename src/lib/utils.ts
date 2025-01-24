@@ -7,8 +7,12 @@ export const checkEnv = () => {
   const needed = [
     'PORT',
     'NODE_ENV',
+
     'JWT_SECRET',
     'DATABASE_URL',
+
+    'SUPABASE_URL',
+    'SUPABASE_SERVICE_KEY',
 
     'OAUTH_CALLBACK_URI',
 
@@ -55,26 +59,21 @@ export const cleanUser = (
 ): Partial<User> => {
   const { owner = false, admin = false } = options;
 
-  // Define the base cleaned user
-  const clean: Partial<User> = {
-    id: user.id,
-    name: user.name,
-    avatar: user.avatar,
-    background: user.background,
-    bio: user.bio,
-  };
+  // Property to remove
+  const { password, email, createdAt, ...rest } = user;
+  const cleanUser: Partial<User> = rest; // Give type to rest
 
   // Fields for owner or admin
   if (owner || admin) {
-    clean.email = user.email;
+    cleanUser.email = user.email;
   }
 
   // Fields for admin only
   if (admin) {
-    clean.createdAt = user.createdAt;
+    cleanUser.createdAt = user.createdAt;
   }
 
-  return clean;
+  return cleanUser;
 };
 
 /**
