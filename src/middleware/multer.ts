@@ -6,9 +6,12 @@ import { extname } from 'node:path';
 const localStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, 'upload'),
   filename: (req, file, cb) => {
-    const uniqueSuffix = req.user.email + '-' + Date.now();
+    const uniqueSuffix = req.user.name.replace(' ', '_') + '-' + Date.now();
     const fileName =
-      file.fieldname + '-' + uniqueSuffix + extname(file.originalname);
+      file.fieldname +
+      '-' +
+      uniqueSuffix.toLowerCase() +
+      extname(file.originalname);
 
     cb(null, fileName);
   },

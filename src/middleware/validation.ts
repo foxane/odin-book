@@ -79,9 +79,7 @@ export const userUpdate = [
       ) &&
       req.files;
 
-    const hasValidFile = req.files['avatar'] || req.files['background'];
-
-    if (!hasValidField && !hasValidFile) {
+    if (!hasValidField && !req.files) {
       res.status(400).json({
         message: 'No payload, why the fuck are you sending it?',
       });
