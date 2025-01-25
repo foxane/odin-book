@@ -2,12 +2,7 @@ import { Router } from 'express';
 import passport from 'passport';
 
 import * as validate from '@/middleware/validation';
-import {
-  createUser,
-  getAllUser,
-  getSingleUser,
-  updateUser,
-} from '@/controller/user.controller';
+import * as user from '@/controller/user.controller';
 import { login, OAuthCallback } from '@/controller/auth.controller';
 import { upload } from '@/middleware/multer';
 import { authenticate } from '@/middleware/authenticate';
@@ -17,7 +12,7 @@ const routes = Router();
 /**
  * Auth routes
  */
-routes.post('/auth/register', validate.signup, createUser);
+routes.post('/auth/register', validate.signup, user.createUser);
 routes.post('/auth/login', login);
 routes.get('/auth/callback', OAuthCallback); // Handle all OAuth callback regardless provider
 routes.get(
@@ -33,8 +28,18 @@ routes.get(
  * User routes
  */
 routes
+  .route('/user{s}/:userId/follower{s}')
+  .get(authenticate, user.getFollowers);
+routes.route('/user{s}/:userId/following').get(authenticate, user.getFollowing);
+
+routes
+  .route('/user{s}/:userId/follow')
+  .post(authenticate, user.followUser)
+  .delete(authenticate, user.unfollowUser);
+
+routes
   .route('/user{s}/:userId')
-  .get(authenticate, getSingleUser)
+  .get(authenticate, user.getSingleUser)
   .put(
     authenticate,
     upload.fields([
@@ -42,8 +47,8 @@ routes
       { name: 'background', maxCount: 1 },
     ]),
     validate.userUpdate,
-    updateUser,
+    user.updateUser,
   );
-routes.route('/user{s}').get(authenticate, getAllUser);
+routes.route('/user{s}').get(authenticate, user.getAllUser);
 
 export default routes;

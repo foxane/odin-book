@@ -2,7 +2,8 @@ import type { User } from '@prisma/client';
 import type { RequestHandler } from 'express';
 import passport from 'passport';
 
-import { cleanUser, signJwt } from '@/lib/utils';
+import { signJwt } from '@/lib/utils';
+import { cleanUser } from '@/lib/user';
 
 export const login: RequestHandler = (req, res, next) => {
   passport.authenticate(

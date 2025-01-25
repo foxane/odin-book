@@ -19,6 +19,15 @@ model User {
   createdAt DateTime @default(now())
 
   provider OAuth?
+  role     Role   @default(USER)
+
+  follower  User[] @relation("Follow")
+  following User[] @relation("Follow")
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 
 model OAuth {

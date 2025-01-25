@@ -11,18 +11,13 @@ const storageClient = new StorageClient(BUCKET_URL, {
 
 export const uploadToBucket = async (
   file: Express.Multer.File,
-  username: string,
+  userId: string,
 ) => {
   /**
-   * Field + name + date + extensions
+   * Id + date + extensions
+   * Id will act as directory as it wont change
    */
-  const fileName =
-    file.fieldname +
-    '-' +
-    username.replaceAll(' ', '_') +
-    '-' +
-    Date.now() +
-    extname(file.originalname);
+  const fileName = userId + '/' + Date.now() + extname(file.originalname);
 
   const { data, error } = await storageClient
     .from(file.fieldname)
