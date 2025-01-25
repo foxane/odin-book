@@ -11,7 +11,7 @@ const storageClient = new StorageClient(BUCKET_URL, {
 
 export const uploadToBucket = async (
   file: Express.Multer.File,
-  userId: string,
+  username: string,
 ) => {
   /**
    * Field + name + date + extensions
@@ -19,7 +19,7 @@ export const uploadToBucket = async (
   const fileName =
     file.fieldname +
     '-' +
-    userId.replaceAll(' ', '_') +
+    username.replaceAll(' ', '_') +
     '-' +
     Date.now() +
     extname(file.originalname);

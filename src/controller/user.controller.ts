@@ -79,10 +79,10 @@ export const updateUser: RequestHandler = async (req, res) => {
     const fileUploads = { avatar, background };
 
     // Helper to upload files and update their path
-    const uploadAndSetPath = async (fileKey: FileField, userId: string) => {
+    const uploadAndSetPath = async (fileKey: FileField, username: string) => {
       if (fileUploads[fileKey]) {
         const file = fileUploads[fileKey][0];
-        const url = await uploadToBucket(file, userId);
+        const url = await uploadToBucket(file, username);
         file.path = url;
       }
     };
@@ -90,7 +90,7 @@ export const updateUser: RequestHandler = async (req, res) => {
     // Prepare uploads and wait for completion
     await Promise.all(
       Object.keys(fileUploads).map(key =>
-        uploadAndSetPath(key as FileField, id),
+        uploadAndSetPath(key as FileField, req.user.name),
       ),
     );
   }
