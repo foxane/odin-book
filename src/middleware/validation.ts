@@ -78,10 +78,9 @@ export const userUpdate = [
           req.body[field] !== undefined &&
           req.body[field] !== null &&
           req.body[field].trim() !== '',
-      ) &&
-      req.files;
+      );
 
-    if (!hasValidField && !req.files) {
+    if (!hasValidField) {
       res.status(400).json({
         message: 'No payload, why the fuck are you sending it?',
       });

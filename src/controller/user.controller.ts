@@ -7,6 +7,10 @@ import { getFileUrl, signJwt } from '@/lib/utils';
 import * as userUtils from '@/lib/user';
 import { uploadToBucket } from '@/middleware/bucket';
 
+/**
+ * ====================== User controller ============================
+ */
+
 export const createUser: RequestHandler = async (req, res) => {
   const { name, email, password } = req.body as {
     name: string;
@@ -81,32 +85,6 @@ export const updateUser: RequestHandler = async (req, res) => {
   }
 
   /**
-   * Handle avatar and background update
-   */
-  type FileField = 'avatar' | 'background';
-  const { avatar, background } = req.files;
-
-  if (process.env.NODE_ENV === 'production') {
-    const fileUploads = { avatar, background };
-
-    // Helper to upload files and update their path
-    const uploadAndSetPath = async (fileKey: FileField, userId: string) => {
-      if (fileUploads[fileKey]) {
-        const file = fileUploads[fileKey][0];
-        const url = await uploadToBucket(file, userId);
-        file.path = url;
-      }
-    };
-
-    // Prepare uploads and wait for completion
-    await Promise.all(
-      Object.keys(fileUploads).map(key =>
-        uploadAndSetPath(key as FileField, id),
-      ),
-    );
-  }
-
-  /**
    * Update db record
    */
   const { name, email, password } = req.body as UserUpdatePayload;
@@ -115,8 +93,6 @@ export const updateUser: RequestHandler = async (req, res) => {
     ...(name && { name }),
     ...(email && { email }),
     ...(password && { password: hashedPw }),
-    ...(avatar && { avatar: getFileUrl(avatar[0]) }),
-    ...(background && { background: getFileUrl(background[0]) }),
   };
 
   const user = await prisma.user.update({ where: { id }, data: newData });
@@ -125,6 +101,37 @@ export const updateUser: RequestHandler = async (req, res) => {
     user: userUtils.cleanUser(user, { owner: true }),
   });
 };
+
+export const updateImage: RequestHandler = async (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ message: 'No image!' });
+    return;
+  }
+
+  if (req.user.id !== req.params['userId']) {
+    res.status(403).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    const publicUrl = await uploadToBucket(req.file, req.user.id);
+    req.file.path = publicUrl;
+  }
+
+  const user = await prisma.user.update({
+    where: { id: req.user.id },
+    data: { [req.file.fieldname]: getFileUrl(req.file) },
+  });
+
+  res.json({
+    token: signJwt(user),
+    user: userUtils.cleanUser(user, { owner: true }),
+  });
+};
+
+/**
+ * ====================== Follow controller ============================
+ */
 
 export const followUser: RequestHandler = async (req, res) => {
   const idToFollow = req.params['userId'];
