@@ -106,22 +106,13 @@ export const getLikedBy: RequestHandler = async (req, res) => {
 export const likePost: RequestHandler = async (req, res) => {
   const { post } = req;
   const userId = req.user.id;
+  const isLike = req.method === 'POST';
 
   await prisma.post.update({
     where: { id: post.id },
-    data: { likedBy: { connect: { id: userId } } },
-  });
-
-  res.status(204).end();
-};
-
-export const unlikePost: RequestHandler = async (req, res) => {
-  const { post } = req;
-  const userId = req.user.id;
-
-  await prisma.post.update({
-    where: { id: post.id },
-    data: { likedBy: { disconnect: { id: userId } } },
+    data: {
+      likedBy: { [isLike ? 'connect' : 'disconnect']: { id: userId } },
+    },
   });
 
   res.status(204).end();

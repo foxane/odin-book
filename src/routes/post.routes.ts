@@ -13,7 +13,7 @@ postRouter
   .route('/:postId/like')
   .get(post.getLikedBy)
   .post(post.likePost)
-  .delete(post.unlikePost);
+  .delete(post.likePost);
 
 postRouter
   .route('/:postId')
