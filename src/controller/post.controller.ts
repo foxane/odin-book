@@ -32,9 +32,17 @@ export const getAllPost: RequestHandler = async (req, res) => {
 };
 
 export const getSinglePost: RequestHandler = async (req, res) => {
-  const { post } = req;
-  post.user = cleanUser(post.user) as User;
+  const postId = req.post.id;
 
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    include: {
+      user: true,
+      _count: { select: { likedBy: true } },
+    },
+  });
+
+  if (post) post.user = cleanUser(post?.user) as User;
   res.json(post);
 };
 

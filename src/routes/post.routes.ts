@@ -6,7 +6,8 @@ import { newPost } from '@/middleware/validation';
 
 const postRouter = Router();
 
-postRouter.use(authenticate, verifyPostExist);
+postRouter.use(authenticate);
+postRouter.param('postId', verifyPostExist);
 
 postRouter
   .route('/:postId/like')

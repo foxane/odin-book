@@ -24,8 +24,39 @@ model User {
   follower  User[] @relation("Follow")
   following User[] @relation("Follow")
 
-  post      Post[]
-  likedPost Post[] @relation("Like")
+  post         Post[]    @relation("PostCreated")
+  comment      Comment[] @relation("CommentCreated")
+  likedPost    Post[]    @relation("PostLiked")
+  likedComment Comment[] @relation("CommentLiked")
+}
+
+model Post {
+  id    Int      @id @default(autoincrement())
+  text  String
+  media String[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  likedBy   User[]    @relation("PostLiked")
+  comment   Comment[] @relation("PostComment")
+
+  user   User   @relation("PostCreated", fields: [userId], references: [id])
+  userId String
+}
+
+model Comment {
+  id    Int      @id @default(autoincrement())
+  text  String
+  media String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  likedBy   User[]   @relation("CommentLiked")
+
+  user   User   @relation("CommentCreated", fields: [userId], references: [id])
+  userId String
+  post   Post   @relation("PostComment", fields: [postId], references: [id])
+  postId Int
 }
 
 enum Role {
@@ -38,17 +69,4 @@ model OAuth {
   user     User   @relation(fields: [userId], references: [id])
   userId   String @unique
   provider String
-}
-
-model Post {
-  id    Int      @id @default(autoincrement())
-  text  String
-  media String[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  likedBy   User[]   @relation("Like")
-
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
 }
