@@ -46,8 +46,8 @@ export const signup = [
     .trim()
     .notEmpty()
     .withMessage('Password cannot be empty')
-    .isLength({ min: 2 })
-    .withMessage('Password too short, need to be at least 2 characters'),
+    .isLength({ min: 2, max: 20 })
+    .withMessage('Password too short, need to be between 2 and 20 characters'),
 
   validate,
 ];
@@ -123,8 +123,19 @@ export const userUpdate = [
   body('password')
     .optional()
     .trim()
-    .isLength({ min: 2 })
-    .withMessage('Password too short, need to be at least 2 characters'),
+    .isLength({ min: 2, max: 20 })
+    .withMessage('Name can only between 3 and 20 characters'),
+
+  validate,
+];
+
+export const newPost = [
+  body('text')
+    .trim()
+    .notEmpty()
+    .withMessage('Text field cannot be empty')
+    .isLength({ min: 3, max: 300 })
+    .withMessage('Text field can only between 3 and 300 characters'),
 
   validate,
 ];

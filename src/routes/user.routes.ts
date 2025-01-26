@@ -4,30 +4,34 @@ import { authenticate } from '@/middleware/authenticate';
 import * as user from '@/controller/user.controller';
 import { upload } from '@/middleware/multer';
 import { userUpdate } from '@/middleware/validation';
+import { getPostByUser } from '@/controller/post.controller';
 
 const userRouter = Router();
 
-userRouter.route('/:userId/follower{s}').get(authenticate, user.getFollowers);
-userRouter.route('/:userId/following').get(authenticate, user.getFollowing);
+userRouter.use(authenticate);
+
+userRouter.route('/:userId/post{s}').get(getPostByUser);
+userRouter.route('/:userId/follower{s}').get(user.getFollowers);
+userRouter.route('/:userId/following').get(user.getFollowing);
 
 userRouter
   .route('/:userId/avatar')
-  .patch(authenticate, upload.single('avatar'), user.updateImage);
+  .patch(upload.single('avatar'), user.updateImage);
 
 userRouter
   .route('/:userId/background')
-  .patch(authenticate, upload.single('background'), user.updateImage);
+  .patch(upload.single('background'), user.updateImage);
 
 userRouter
   .route('/:userId/follow')
-  .post(authenticate, user.followUser)
-  .delete(authenticate, user.unfollowUser);
+  .post(user.followUser)
+  .delete(user.unfollowUser);
 
 userRouter
   .route('/:userId')
-  .get(authenticate, user.getSingleUser)
-  .put(authenticate, userUpdate, user.updateUser);
+  .get(user.getSingleUser)
+  .put(userUpdate, user.updateUser);
 
-userRouter.route('/').get(authenticate, user.getAllUser);
+userRouter.route('/').get(user.getAllUser);
 
 export default userRouter;

@@ -22,3 +22,27 @@ export const authenticate: RequestHandler = async (req, res, next) => {
   req.user = user;
   next();
 };
+
+export const verifyPostExist: RequestHandler = async (req, res, next) => {
+  // Skip when postId don't exist
+  if (!req.params['postId']) {
+    return next();
+  }
+
+  const postId = Number(req.params['postId']);
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    include: {
+      user: true,
+      _count: { select: { likedBy: true } },
+    },
+  });
+
+  if (!post) {
+    res.status(404).json({ message: 'Post not found' });
+    return;
+  }
+
+  req.post = post;
+  next();
+};
