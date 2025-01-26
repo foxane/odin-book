@@ -30,20 +30,15 @@ export const createUser: RequestHandler = async (req, res) => {
 };
 
 export const getAllUser: RequestHandler = async (req, res) => {
-  const { name, take, page } = req.query;
-
   const users = await prisma.user.findMany({
-    ...userUtils.createUserFilter({ name, take, page }),
+    ...userUtils.createUserFilter(req.query),
 
     include: {
       _count: { select: { follower: true, following: true } },
     },
   });
 
-  const cleanedUser = userUtils.cleanManyUser(users);
-  const normalizedFollow = userUtils.normalizeCount(cleanedUser);
-
-  res.json(normalizedFollow);
+  res.json(userUtils.cleanManyUser(users));
 };
 
 export const getSingleUser: RequestHandler = async (req, res) => {
@@ -60,10 +55,7 @@ export const getSingleUser: RequestHandler = async (req, res) => {
     return;
   }
 
-  const cleanedUser = userUtils.cleanUser(user);
-  const normalizedFollow = userUtils.normalizeCount(cleanedUser);
-
-  res.json(normalizedFollow);
+  res.json(userUtils.cleanUser(user));
 };
 
 type UserUpdatePayload = {

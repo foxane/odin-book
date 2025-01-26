@@ -33,13 +33,6 @@ export const cleanManyUser = (users: User[], options?: CleanUserOptions) => {
   return res;
 };
 
-/**
- * // TODO
- * - Delete normalizeCount(), send _count directly from prisma
- * - Remove jsdoc, for create userFilter, maybe remove all jsdoc
- * - Change createUserFilter to be like createPostFIlter
- */
-
 type UserQuery = {
   name?: string;
   take?: string;
@@ -67,26 +60,4 @@ export const createUserFilter = (query: UserQuery) => {
   if (take > 0) result.take = take;
 
   return result;
-};
-
-export const normalizeCount = (user: any) => {
-  const normalize = (user: any) => {
-    const { _count, ...rest } = user;
-
-    rest.followerCount = _count.follower;
-    rest.followingCount = _count.following;
-
-    return rest;
-  };
-
-  if (Array.isArray(user)) {
-    const result = [];
-    for (const u of user) {
-      result.push(normalize(u));
-    }
-
-    return result;
-  }
-
-  return normalize(user);
 };
