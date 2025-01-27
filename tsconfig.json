@@ -34,5 +34,14 @@
     "typeRoots": ["./node_modules/@types", "types"]
   },
 
-  "include": ["./src/**/*", "types"]
+  "include": ["./src/**/*", "types"],
+
+  "tsc-alias": {
+    "verbose": false,
+    "resolveFullPaths": true,
+    "fileExtensions": {
+      "inputGlob": "{js,jsx,mjs}",
+      "outputCheck": ["js", "json", "jsx", "mjs"]
+    }
+  }
 }

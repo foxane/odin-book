@@ -4,7 +4,7 @@ import cors from 'cors';
 
 import setupSocketServer from '@/socket';
 import { checkEnv } from '@/lib/utils';
-import { initializePassport } from '@/passport/passport';
+import { initializePassport } from '@/auth/passportInit';
 import { errorMiddleware } from '@/middleware/error';
 import { morganMiddleware } from '@/middleware/logger';
 import authRouter from '@/routes/auth.routes';

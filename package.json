@@ -3,7 +3,9 @@
   "module": "src/app.ts",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --env-file=.env src/app.ts",
+    "dev": "tsx watch src/app.ts",
+    "build": "rm -rf ./dist && tsc && tsc-alias",
+    "start": "node dist/app.js",
     "test": "node --test ./test/**/*"
   },
   "dependencies": {
@@ -39,6 +41,7 @@
     "@types/passport-local": "^1.0.38",
     "@types/sanitize-html": "^2.13.0",
     "prisma": "^6.2.1",
+    "tsc-alias": "^1.8.10",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   }
