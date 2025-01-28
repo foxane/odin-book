@@ -1,10 +1,6 @@
-import { createServer } from 'node:http';
 import express from 'express';
 import cors from 'cors';
 
-import setupSocketServer from '@/socket';
-import { checkEnv } from '@/lib/utils';
-import { initializePassport } from '@/auth/passportInit';
 import { errorMiddleware } from '@/middleware/error';
 import { morganMiddleware } from '@/middleware/logger';
 import authRouter from '@/routes/auth.routes';
@@ -28,13 +24,4 @@ app.use('/post{s}', postRouter);
 
 app.use(errorMiddleware);
 
-initializePassport();
-checkEnv();
-
-const port = process.env.PORT ?? 3000;
-const server = createServer(app);
-setupSocketServer(server);
-
-server.listen(port, () => {
-  console.log('Server listening on port: ', port);
-});
+export default app;
