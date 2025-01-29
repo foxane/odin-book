@@ -3,10 +3,13 @@
   "module": "src/app.ts",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/app.ts",
+    "dev": "tsx --watch --env-file=.env.development src/index.ts",
     "build": "rm -rf ./dist && tsc && tsc-alias",
-    "start": "node dist/app.js",
-    "test": "node --test ./test/**/*"
+    "start": "node dist/index.js",
+    "docker:build": "docker build -t odinbook-api . && docker image prune -f",
+    "docker:run": "docker run -d --name odinbook-api -v $(pwd)/logs:/home/node/app/logs --env-file .env.production -p 3000:3000 odinbook-api",
+    "docker:logs": "docker logs -f odinbook-api",
+    "docker:start": "npm run docker:build && npm run docker:run && npm run docker:logs"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",
