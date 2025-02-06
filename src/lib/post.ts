@@ -16,7 +16,7 @@ export const sanitizeText = (str: string) => {
 type PostQuery = {
   search?: string;
   take?: string;
-  page?: string;
+  cursor?: string;
   order?: 'asc' | 'desc';
 };
 export const createPostFilter = (query: PostQuery) => {
@@ -25,21 +25,29 @@ export const createPostFilter = (query: PostQuery) => {
   if (query.search) where.text = { contains: query.search };
 
   // Pagination
-  const page = query.page ? parseInt(query.page) : 0;
-  const take = query.take ? parseInt(query.take) : 0;
-  let skip = 0;
-
-  // Populate skip when take and page is above 0
-  if (take > 0 && page > 0) {
-    skip = (page - 1) * take;
-  }
+  const take = query.take ? parseInt(query.take) : 10; // Take 10 by default
+  const cursor = query.cursor ? { id: parseInt(query.cursor) } : undefined;
 
   // Staging
-  const result: Prisma.PostFindManyArgs = {};
-  result.where = where;
-  result.orderBy = { createdAt: query.order !== 'asc' ? 'desc' : 'asc' };
-  if (skip > 0) result.skip = skip;
-  if (take > 0) result.take = take;
+  const result: Prisma.PostFindManyArgs = {
+    where,
+    orderBy: { createdAt: query.order !== 'asc' ? 'desc' : 'asc' },
+    take,
+  };
+
+  if (cursor) {
+    result.cursor = cursor;
+    result.skip = 1; // Skip the cursor item itself
+  }
 
   return result;
+};
+
+// TODO: Find a way to not use any
+export const appendIsLiked = (p: any) => {
+  const post = { ...p };
+  post.isLiked = post.likedBy.length > 0;
+  delete post.likedBy;
+
+  return post;
 };

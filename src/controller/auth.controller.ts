@@ -50,3 +50,7 @@ export const OAuthCallback: RequestHandler[] = [
     res.json({ token: signJwt(user), user: cleanUser(user, { owner: true }) });
   },
 ];
+
+export const getSelf: RequestHandler = (req, res) => {
+  res.json(cleanUser(req.user, { owner: true }));
+};

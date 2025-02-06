@@ -11,6 +11,11 @@ import { verifyPostExist } from './middleware/authenticate';
 
 const app = express();
 
+app.use((req,res,next) => {
+  setTimeout(() => {
+    next()
+  }, 1000);
+})
 app.use(cors());
 app.use(express.json());
 app.use(morganMiddleware);

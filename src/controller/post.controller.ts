@@ -2,7 +2,7 @@ import type { RequestHandler } from 'express';
 import type { User } from '@prisma/client';
 
 import { prisma } from '@/lib/prismaClient';
-import { createPostFilter, sanitizeText } from '@/lib/post';
+import { appendIsLiked, createPostFilter, sanitizeText } from '@/lib/post';
 import { cleanManyUser, cleanUser } from '@/lib/user';
 
 export const createPost: RequestHandler = async (req, res) => {
@@ -21,14 +21,17 @@ export const getAllPost: RequestHandler = async (req, res) => {
     include: {
       user: true,
       _count: { select: { likedBy: true } },
+      likedBy: { where: { id: req.user.id } },
     },
   });
 
+  let result = [];
   for (const p of posts) {
     p.user = cleanUser(p.user) as User;
+    result.push(appendIsLiked(p));
   }
 
-  res.json(posts);
+  res.json(result);
 };
 
 export const getSinglePost: RequestHandler = async (req, res) => {
@@ -39,11 +42,12 @@ export const getSinglePost: RequestHandler = async (req, res) => {
     include: {
       user: true,
       _count: { select: { likedBy: true } },
+      likedBy: { where: { id: req.user.id } },
     },
   });
 
   if (post) post.user = cleanUser(post?.user) as User;
-  res.json(post);
+  res.json(appendIsLiked(post));
 };
 
 export const getPostByUser: RequestHandler = async (req, res) => {
@@ -53,10 +57,16 @@ export const getPostByUser: RequestHandler = async (req, res) => {
     where: { userId },
     include: {
       _count: { select: { likedBy: true } },
+      likedBy: { where: { id: req.user.id } },
     },
   });
 
-  res.json(posts);
+  const result = [];
+  for (let p of posts) {
+    result.push(appendIsLiked(p));
+  }
+
+  res.json(result);
 };
 
 export const updatePost: RequestHandler = async (req, res) => {
@@ -73,10 +83,11 @@ export const updatePost: RequestHandler = async (req, res) => {
     data: { text: sanitizeText(text) },
     include: {
       _count: { select: { likedBy: true } },
+      likedBy: { where: { id: req.user.id } },
     },
   });
 
-  res.json(updatedPost);
+  res.json(appendIsLiked(updatedPost));
 };
 
 export const deletePost: RequestHandler = async (req, res) => {
