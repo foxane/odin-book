@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/prismaClient';
+import { sendToBucket } from '@/middleware/bucket';
 import type { User } from '@prisma/client';
+import axios from 'axios';
 import {
   Strategy,
   type Profile,
@@ -31,10 +33,32 @@ const verify: VerifyCallback = async (_t, _r, profile, done) => {
       data: {
         name: profile.displayName,
         email: profile.emails ? profile.emails[0].value : profile.id,
-        avatar: profile.photos ? profile.photos[0].value : null,
         provider: { create: { id: profile.id, provider: 'google' } },
       },
     });
+
+    if (profile.photos) {
+      const originUrl = profile.photos[0].value;
+
+      const { data, headers } = await axios.get<ArrayBuffer>(originUrl, {
+        responseType: 'arraybuffer',
+      });
+      const mimeType = headers['Content-Type'] as string;
+
+      const avatarUrl = await sendToBucket(
+        'avatar',
+        `${newUser.id}/${Date.now()}`,
+        data,
+        mimeType,
+      );
+
+      const user = await prisma.user.update({
+        where: { id: newUser.id },
+        data: { avatar: avatarUrl },
+      });
+
+      return done(null, user);
+    }
 
     done(null, newUser);
   } catch (error) {

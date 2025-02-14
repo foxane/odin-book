@@ -66,5 +66,7 @@ export const getFileUrl = (file: Express.Multer.File) => {
 
   if (isProd) return file.path;
 
-  return `http://${getLocalIp()}:${PORT}/${file.path}`;
+  return `http://${getLocalIp()}:${PORT}/${file.filename}`;
 };
+
+checkEnv();

@@ -4,12 +4,23 @@ import type { User } from '@prisma/client';
 import { prisma } from '@/lib/prismaClient';
 import { appendIsLiked, createPostFilter, sanitizeText } from '@/lib/post';
 import { cleanManyUser, cleanUser } from '@/lib/user';
+import { getFileUrl } from '@/lib/utils';
+import { uploadToBucket } from '@/middleware/bucket';
 
 export const createPost: RequestHandler = async (req, res) => {
   const { text } = req.body as { text: string };
 
+  if (req.file && process.env.NODE_ENV === 'production') {
+    const publicUrl = await uploadToBucket(req.file, req.user.id);
+    req.file.path = publicUrl;
+  }
+
   const post = await prisma.post.create({
-    data: { text: sanitizeText(text), user: { connect: { id: req.user.id } } },
+    data: {
+      text: sanitizeText(text),
+      media: req.file ? [getFileUrl(req.file)] : [],
+      user: { connect: { id: req.user.id } },
+    },
   });
 
   res.status(201).json(post);
@@ -20,7 +31,7 @@ export const getAllPost: RequestHandler = async (req, res) => {
     ...createPostFilter(req.query),
     include: {
       user: true,
-      _count: { select: { likedBy: true } },
+      _count: { select: { likedBy: true, comment: true } },
       likedBy: { where: { id: req.user.id } },
     },
   });
@@ -41,7 +52,7 @@ export const getSinglePost: RequestHandler = async (req, res) => {
     where: { id: postId },
     include: {
       user: true,
-      _count: { select: { likedBy: true } },
+      _count: { select: { likedBy: true, comment: true } },
       likedBy: { where: { id: req.user.id } },
     },
   });
@@ -56,15 +67,16 @@ export const getPostByUser: RequestHandler = async (req, res) => {
   const posts = await prisma.post.findMany({
     where: { userId },
     include: {
-      _count: { select: { likedBy: true } },
+      _count: { select: { likedBy: true, comment: true } },
       likedBy: { where: { id: req.user.id } },
+      user: true,
     },
   });
 
-  const result = [];
-  for (let p of posts) {
-    result.push(appendIsLiked(p));
-  }
+  const result = posts.map(el => ({
+    ...appendIsLiked(el),
+    user: cleanUser(el.user),
+  }));
 
   res.json(result);
 };

@@ -9,6 +9,9 @@ const storageClient = new StorageClient(BUCKET_URL, {
   Authorization: KEY,
 });
 
+/**
+ * Used after multer middleware run
+ */
 export const uploadToBucket = async (
   file: Express.Multer.File,
   userId: string,
@@ -33,4 +36,26 @@ export const uploadToBucket = async (
 
   return storageClient.from(file.fieldname).getPublicUrl(data.path).data
     .publicUrl;
+};
+
+/**
+ * Used anywhere
+ */
+export const sendToBucket = async (
+  bucket: string,
+  path: string,
+  file: ArrayBuffer,
+  mime?: string,
+) => {
+  const { data, error } = await storageClient.from(bucket).upload(path, file, {
+    contentType: mime ?? 'image/jpeg',
+    upsert: true,
+  });
+
+  /**
+   * Handled by error middleware
+   */
+  if (error) throw error;
+
+  return storageClient.from(bucket).getPublicUrl(data.path).data.publicUrl;
 };

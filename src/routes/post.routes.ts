@@ -3,6 +3,7 @@ import { Router } from 'express';
 import * as post from '@/controller/post.controller';
 import { authenticate, verifyPostExist } from '@/middleware/authenticate';
 import { newPost } from '@/middleware/validation';
+import { upload } from '@/middleware/multer';
 
 const postRouter = Router();
 
@@ -21,6 +22,9 @@ postRouter
   .put(newPost, post.updatePost)
   .delete(post.deletePost);
 
-postRouter.route('/').get(post.getAllPost).post(newPost, post.createPost);
+postRouter
+  .route('/')
+  .get(post.getAllPost)
+  .post(upload.single('user-upload'), newPost, post.createPost);
 
 export default postRouter;
