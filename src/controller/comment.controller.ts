@@ -2,8 +2,9 @@ import type { RequestHandler } from 'express';
 
 import { prisma } from '@/lib/prismaClient';
 import { cleanManyUser, cleanUser } from '@/lib/user';
-import type { Prisma, User } from '@prisma/client';
-import { sanitizeText } from '@/lib/post';
+import type { User } from '@prisma/client';
+import { appendIsLiked, sanitizeText } from '@/lib/post';
+import { createCommentFilter } from '@/lib/comment';
 
 export const createComment: RequestHandler = async (req, res) => {
   const { post, user } = req;
@@ -15,35 +16,29 @@ export const createComment: RequestHandler = async (req, res) => {
       userId: user.id,
       postId: post.id,
     },
+    include: { user: true },
   });
 
-  res.status(201).json(newComment);
+  res.status(201).json({ ...newComment, user: cleanUser(newComment.user) });
 };
 
 export const getCommentByPost: RequestHandler = async (req, res) => {
   const { post } = req;
 
-  const order = req.query['order'] === 'asc' ? 'asc' : 'desc';
-  const orderBy: Prisma.CommentFindManyArgs = {};
-  if (req.query['sort'] === 'like') {
-    orderBy.orderBy = { likedBy: { _count: order } };
-  } else {
-    orderBy.orderBy = { createdAt: order };
-  }
-
   const comments = await prisma.comment.findMany({
-    ...orderBy,
+    ...createCommentFilter(req.query),
     where: { postId: post.id },
     include: {
       _count: { select: { likedBy: true } },
       user: true,
+      likedBy: { where: { id: req.user.id } },
     },
   });
 
   const cleanedComment = [];
   for (const c of comments) {
     c.user = cleanUser(c.user) as User;
-    cleanedComment.push(c);
+    cleanedComment.push(appendIsLiked(c));
   }
 
   res.json(cleanedComment);

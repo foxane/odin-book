@@ -36,28 +36,34 @@ export const cleanManyUser = (users: User[], options?: CleanUserOptions) => {
 type UserQuery = {
   name?: string;
   take?: string;
-  page?: string;
+  cursor?: string;
 };
-export const createUserFilter = (query: UserQuery) => {
+export const createUserFilter = (query: UserQuery, clientId: string) => {
   // Filter
   const where: Prisma.UserWhereInput = {};
+  where.id = { not: clientId };
   if (query.name) where.name = { contains: query.name };
 
   // Pagination
-  const page = query.page ? parseInt(query.page) : 0;
-  const take = query.take ? parseInt(query.take) : 0;
-  let skip = 0;
-
-  // Populate skip when take and page is above 0
-  if (take > 0 && page > 0) {
-    skip = (page - 1) * take;
-  }
+  const take = query.take ? parseInt(query.take) : 10; // Default
 
   // Staging
-  const result: Prisma.UserFindManyArgs = {};
-  result.where = where;
-  if (skip > 0) result.skip = skip;
-  if (take > 0) result.take = take;
+  const result: Prisma.UserFindManyArgs = {
+    where,
+    take,
+  };
+
+  if (query.cursor) {
+    result.cursor = { id: query.cursor };
+    result.skip = 1;
+  }
 
   return result;
+};
+
+export const appendIsFollowed = (u: any) => {
+  const user = { ...u };
+  user.isFollowed = u.follower.length > 0;
+  delete user.follower;
+  return user;
 };
