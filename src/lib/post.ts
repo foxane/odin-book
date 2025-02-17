@@ -22,7 +22,8 @@ type PostQuery = {
 export const createPostFilter = (query: PostQuery) => {
   // FIlter
   const where: Prisma.PostWhereInput = {};
-  if (query.search) where.text = { contains: query.search };
+  if (query.search)
+    where.text = { contains: query.search, mode: 'insensitive' };
 
   // Pagination
   const take = query.take ? parseInt(query.take) : 10; // Take 10 by default

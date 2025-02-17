@@ -34,7 +34,7 @@ export const cleanManyUser = (users: User[], options?: CleanUserOptions) => {
 };
 
 type UserQuery = {
-  name?: string;
+  search?: string;
   take?: string;
   cursor?: string;
 };
@@ -42,7 +42,8 @@ export const createUserFilter = (query: UserQuery, clientId: string) => {
   // Filter
   const where: Prisma.UserWhereInput = {};
   where.id = { not: clientId };
-  if (query.name) where.name = { contains: query.name };
+  if (query.search)
+    where.name = { contains: query.search, mode: 'insensitive' };
 
   // Pagination
   const take = query.take ? parseInt(query.take) : 10; // Default

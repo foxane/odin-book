@@ -65,6 +65,7 @@ export const getPostByUser: RequestHandler = async (req, res) => {
   const userId = req.params['userId'];
 
   const posts = await prisma.post.findMany({
+    ...createPostFilter(req.query),
     where: { userId },
     include: {
       _count: { select: { likedBy: true, comment: true } },

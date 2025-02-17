@@ -67,6 +67,7 @@ type UserUpdatePayload = {
   name?: string;
   email?: string;
   password?: string;
+  bio?: string;
 };
 
 export const updateUser: RequestHandler = async (req, res) => {
@@ -84,11 +85,12 @@ export const updateUser: RequestHandler = async (req, res) => {
   /**
    * Update db record
    */
-  const { name, email, password } = req.body as UserUpdatePayload;
+  const { name, email, password, bio } = req.body as UserUpdatePayload;
   const hashedPw = password ? await bcrypt.hash(password, 10) : undefined;
   const newData: Prisma.UserUpdateInput = {
     ...(name && { name }),
     ...(email && { email }),
+    ...(bio && { bio }),
     ...(password && { password: hashedPw }),
   };
 
@@ -166,19 +168,43 @@ export const unfollowUser: RequestHandler = async (req, res) => {
 };
 
 export const getFollowers: RequestHandler = async (req, res) => {
-  const user = await prisma.user.findUnique({
-    where: { id: req.params['userId'] },
-    select: { follower: true },
+  const { userId } = req.params;
+
+  const followers = await prisma.user.findMany({
+    ...userUtils.createUserFilter(req.query, req.user.id),
+    where: { following: { some: { id: userId } } },
+    select: {
+      id: true,
+      name: true,
+      avatar: true,
+      follower: {
+        where: { id: req.user.id }, // Check if the requesting user follows them
+        select: { id: true },
+      },
+    },
   });
 
-  res.json(user?.follower ? userUtils.cleanManyUser(user?.follower) : []);
+  const result = followers.map(el => userUtils.appendIsFollowed(el));
+  res.json(result);
 };
 
 export const getFollowing: RequestHandler = async (req, res) => {
-  const user = await prisma.user.findUnique({
-    where: { id: req.params['userId'] },
-    select: { following: true },
+  const { userId } = req.params;
+
+  const followers = await prisma.user.findMany({
+    ...userUtils.createUserFilter(req.query, req.user.id),
+    where: { follower: { some: { id: userId } } },
+    select: {
+      id: true,
+      name: true,
+      avatar: true,
+      follower: {
+        where: { id: req.user.id }, // Check if the requesting user follows them
+        select: { id: true },
+      },
+    },
   });
 
-  res.json(user?.following ? userUtils.cleanManyUser(user?.following) : []);
+  const result = followers.map(el => userUtils.appendIsFollowed(el));
+  res.json(result);
 };
