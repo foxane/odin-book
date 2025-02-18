@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
-import type { User } from '@prisma/client';
+import type { Comment, NotifType, Post, Prisma, User } from '@prisma/client';
 import { networkInterfaces } from 'node:os';
+import { prisma } from './prismaClient';
 
 export const checkEnv = () => {
   let abort = false;
@@ -35,6 +36,7 @@ export const checkEnv = () => {
     process.exit(1);
   }
 };
+checkEnv();
 
 export const signJwt = (user: User) => {
   const opts: jwt.SignOptions = {
@@ -69,4 +71,12 @@ export const getFileUrl = (file: Express.Multer.File) => {
   return `http://${getLocalIp()}:${PORT}/${file.filename}`;
 };
 
-checkEnv();
+export const createCursor = <T>(cursor?: string | number, take?: string): T => {
+  if (!cursor) return {} as T;
+
+  return {
+    ...(cursor ? { cursor: { id: cursor } } : {}),
+    ...(cursor ? { skip: 1 } : {}),
+    ...(take ? { take: parseInt(take) } : {}),
+  } as T;
+};

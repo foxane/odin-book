@@ -12,9 +12,14 @@ export const getAll: RequestHandler = async (req, res) => {
     take,
   );
 
-  const notifs = prisma.notification.findMany({
+  const notifs = await prisma.notification.findMany({
     ...filter,
     where: { receiverId: user.id },
+    include: {
+      actor: { select: { name: true, avatar: true } },
+      post: { select: { text: true } },
+      comment: { select: { text: true } },
+    },
   });
 
   res.json(notifs);

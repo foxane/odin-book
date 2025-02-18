@@ -148,6 +148,17 @@ export const followUser: RequestHandler = async (req, res) => {
     data: { follower: { connect: { id: req.user.id } } },
   });
 
+  /**
+   * Notification
+   */
+  await prisma.notification.create({
+    data: {
+      receiverId: idToFollow,
+      type: 'follower',
+      actor: { connect: { id: req.user.id } },
+    },
+  });
+
   res.status(204).end();
 };
 

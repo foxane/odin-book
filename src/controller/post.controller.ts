@@ -23,6 +23,25 @@ export const createPost: RequestHandler = async (req, res) => {
     },
   });
 
+  /**
+   * Create Notification
+   * */
+  const followers = await prisma.user.findMany({
+    where: { following: { some: { id: req.user.id } } },
+    select: { id: true },
+  });
+
+  if (followers.length > 0) {
+    await prisma.notification.createMany({
+      data: followers.map(({ id }) => ({
+        receiverId: id,
+        actorId: req.user.id,
+        type: 'post_from_followed',
+        postId: post.id,
+      })),
+    });
+  }
+
   res.status(201).json(post);
 };
 
@@ -138,6 +157,20 @@ export const likePost: RequestHandler = async (req, res) => {
       likedBy: { [isLike ? 'connect' : 'disconnect']: { id: userId } },
     },
   });
+
+  /**
+   * Create notification
+   */
+  if (isLike) {
+    await prisma.notification.create({
+      data: {
+        receiverId: post.userId,
+        type: 'post_liked',
+        actorId: req.user.id,
+        postId: post.id,
+      },
+    });
+  }
 
   res.status(204).end();
 };

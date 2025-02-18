@@ -19,6 +19,18 @@ export const createComment: RequestHandler = async (req, res) => {
     include: { user: true },
   });
 
+  /**
+   * Create notification
+   */
+  await prisma.notification.create({
+    data: {
+      receiverId: post.userId,
+      actorId: user.id,
+      type: 'post_commented',
+      commentId: newComment.id,
+    },
+  });
+
   res.status(201).json({ ...newComment, user: cleanUser(newComment.user) });
 };
 
@@ -88,6 +100,20 @@ export const likeComment: RequestHandler = async (req, res) => {
       },
     },
   });
+
+  /**
+   * Create notif
+   */
+  if (isLike) {
+    await prisma.notification.create({
+      data: {
+        type: 'comment_liked',
+        postId: req.post.id,
+        receiverId: req.comment.userId,
+        actorId: req.user.id,
+      },
+    });
+  }
 
   res.status(204).end();
 };
