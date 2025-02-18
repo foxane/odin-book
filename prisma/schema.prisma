@@ -28,6 +28,8 @@ model User {
   comment      Comment[] @relation("CommentCreated")
   likedPost    Post[]    @relation("PostLiked")
   likedComment Comment[] @relation("CommentLiked")
+
+  notif_donotuse Notification[] // Filter notif based on receierId instead
 }
 
 model Post {
@@ -42,6 +44,8 @@ model Post {
 
   user   User   @relation("PostCreated", fields: [userId], references: [id])
   userId String
+
+  notif_donotuse Notification[]
 }
 
 model Comment {
@@ -55,8 +59,41 @@ model Comment {
 
   user   User   @relation("CommentCreated", fields: [userId], references: [id])
   userId String
-  post   Post   @relation("PostComment", fields: [postId], references: [id])
+  post   Post   @relation("PostComment", fields: [postId], references: [id], onDelete: Cascade)
   postId Int
+
+  notif_donotuse Notification[]
+}
+
+model Notification {
+  id     Int       @id @default(autoincrement())
+  isRead Boolean   @default(false)
+  type   NotifType
+  date   DateTime  @default(now())
+
+  receiverId String
+
+  /**
+   * Subject
+   */
+  actorId String
+  actor   User   @relation(fields: [actorId], references: [id])
+
+  /**
+   * Resources
+   */
+  post      Post?    @relation(fields: [postId], references: [id])
+  postId    Int?
+  comment   Comment? @relation(fields: [commentId], references: [id])
+  commentId Int?
+}
+
+enum NotifType {
+  follower
+  post_from_followed
+  post_liked
+  post_commented
+  comment_liked
 }
 
 enum Role {
