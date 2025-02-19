@@ -31,7 +31,7 @@ export const createUser: RequestHandler = async (req, res) => {
 
 export const getAllUser: RequestHandler = async (req, res) => {
   const users = await prisma.user.findMany({
-    ...userUtils.createUserFilter(req.query, req.user.id),
+    ...userUtils.createUserFilter(req.query),
 
     include: {
       _count: { select: { follower: true, following: true } },
@@ -182,7 +182,7 @@ export const getFollowers: RequestHandler = async (req, res) => {
   const { userId } = req.params;
 
   const followers = await prisma.user.findMany({
-    ...userUtils.createUserFilter(req.query, req.user.id),
+    ...userUtils.createUserFilter(req.query),
     where: { following: { some: { id: userId } } },
     select: {
       id: true,
@@ -203,7 +203,7 @@ export const getFollowing: RequestHandler = async (req, res) => {
   const { userId } = req.params;
 
   const followers = await prisma.user.findMany({
-    ...userUtils.createUserFilter(req.query, req.user.id),
+    ...userUtils.createUserFilter(req.query),
     where: { follower: { some: { id: userId } } },
     select: {
       id: true,

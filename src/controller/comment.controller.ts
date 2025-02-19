@@ -27,6 +27,7 @@ export const createComment: RequestHandler = async (req, res) => {
       receiverId: post.userId,
       actorId: user.id,
       type: 'post_commented',
+      postId: post.id,
       commentId: newComment.id,
     },
   });

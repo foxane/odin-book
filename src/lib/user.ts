@@ -39,10 +39,10 @@ type UserQuery = {
   take?: string;
   cursor?: string;
 };
-export const createUserFilter = (query: UserQuery, clientId: string) => {
+export const createUserFilter = (query: UserQuery) => {
   // Filter
   const where: Prisma.UserWhereInput = {};
-  where.id = { not: clientId };
+
   if (query.search)
     where.name = { contains: query.search, mode: 'insensitive' };
 
