@@ -6,6 +6,8 @@ const notifRouter = Router();
 
 notifRouter.use(authenticate);
 
+notifRouter.route('/read-all').patch(service.readAll);
+notifRouter.route('/:notifId/read').patch(service.read);
 notifRouter.route('/').get(service.getAll);
 
 export default notifRouter;
