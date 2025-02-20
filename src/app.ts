@@ -10,13 +10,16 @@ import commentRouter from '@/routes/comment.routes';
 import { verifyPostExist } from './middleware/authenticate';
 import notifRouter from './routes/notif.routes';
 
-const app = express();
+import { app, server } from './socket';
+import { initializePassport } from './auth/passportInit';
+import { getLocalIp } from './lib/utils';
 
-app.use((req, res, next) => {
-  setTimeout(() => {
-    next();
-  }, 1000);
-});
+// app.use((req, res, next) => {
+//   setTimeout(() => {
+//     next();
+//   }, 1000);
+// });
+initializePassport();
 app.use(cors());
 app.use(express.json());
 app.use(morganMiddleware);
@@ -31,4 +34,19 @@ app.use('/notification{S}', notifRouter);
 
 app.use(errorMiddleware);
 
-export default app;
+const ENV = process.env.NODE_ENV;
+const PORT = process.env.PORT ?? 3000;
+const LOCAL_IP = getLocalIp();
+
+server.listen(PORT, () => {
+  console.log(`
+    ==========================================
+    🚀 Server started
+    ==========================================
+    🌐 Local:    http://localhost:${PORT.toString()}
+    🌐 Network:  http://${LOCAL_IP}:${PORT.toString()}
+    ==========================================
+    🛠️  Environment: ${ENV}
+    ==========================================
+    `);
+});
