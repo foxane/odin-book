@@ -28,8 +28,18 @@ model User {
   comment      Comment[] @relation("CommentCreated")
   likedPost    Post[]    @relation("PostLiked")
   likedComment Comment[] @relation("CommentLiked")
+  chatRoom     Room[]    @relation("ChatRoom")
+  messages     Message[]
 
-  notif_donotuse Notification[] // Filter notif based on receierId instead
+  msg_status_donotuse MessageStatus[] // Each message will have different status for each user
+  notif_donotuse      Notification[] // Filter notif based on receierId instead
+}
+
+model OAuth {
+  id       String @id
+  user     User   @relation(fields: [userId], references: [id])
+  userId   String @unique
+  provider String
 }
 
 model Post {
@@ -101,9 +111,37 @@ enum Role {
   USER
 }
 
-model OAuth {
-  id       String @id
-  user     User   @relation(fields: [userId], references: [id])
-  userId   String @unique
-  provider String
+model Room {
+  id       Int       @id @default(autoincrement())
+  users    User[]    @relation("ChatRoom")
+  messages Message[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  text      String?
+  media     String[]
+  createdAt DateTime @default(now())
+
+  Room          Room?           @relation(fields: [roomId], references: [id])
+  roomId        Int?
+  User          User?           @relation(fields: [userId], references: [id])
+  userId        String?
+  MessageStatus MessageStatus[]
+}
+
+model MessageStatus {
+  status MsgStatus
+
+  messageId Int
+  Message   Message @relation(fields: [messageId], references: [id])
+  User      User    @relation(fields: [userId], references: [id])
+  userId    String
+
+  @@id(name: "statusId", [userId, messageId])
+}
+
+enum MsgStatus {
+  DELIVERED
+  READ
 }

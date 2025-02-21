@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken';
-import type { Comment, NotifType, Post, Prisma, User } from '@prisma/client';
+import type { User } from '@prisma/client';
 import { networkInterfaces } from 'node:os';
-import { prisma } from './prismaClient';
 
 export const checkEnv = () => {
   let abort = false;

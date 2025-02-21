@@ -10,16 +10,24 @@ import commentRouter from '@/routes/comment.routes';
 import { verifyPostExist } from './middleware/authenticate';
 import notifRouter from './routes/notif.routes';
 
-import { app, server } from './socket';
 import { initializePassport } from './auth/passportInit';
 import { getLocalIp } from './lib/utils';
+import chatRouter from './routes/chat.routes';
+import { createServer } from 'node:http';
+import { initializeSocket } from './socket';
 
-// app.use((req, res, next) => {
-//   setTimeout(() => {
-//     next();
-//   }, 1000);
-// });
+const app = express();
+const server = createServer(app);
+
+app.use((_req, _res, next) => {
+  setTimeout(() => {
+    next();
+  }, 1000);
+});
+
 initializePassport();
+initializeSocket(server);
+
 app.use(cors());
 app.use(express.json());
 app.use(morganMiddleware);
@@ -31,6 +39,7 @@ app.use('/user{s}', userRouter);
 app.use('/post{s}/:postId/comment{s}', verifyPostExist, commentRouter);
 app.use('/post{s}', postRouter);
 app.use('/notification{S}', notifRouter);
+app.use('/chat', chatRouter);
 
 app.use(errorMiddleware);
 

@@ -1,39 +1,67 @@
-import { Server, Socket, type ExtendedError } from 'socket.io';
-import { createServer } from 'http';
+import { Socket, Server, type ExtendedError } from 'socket.io';
+import { Server as HTTPServer } from 'http';
 import jwt from 'jsonwebtoken';
 import { prisma } from './lib/prismaClient';
-import express from 'express';
+import type { IServer } from 'types/socket';
 
 const SECRET = process.env.JWT_SECRET;
-const app = express();
-const server = createServer(app);
 
-const auth = async (socket: Socket, next: (err?: ExtendedError) => void) => {
+export const socketAuth = async (
+  socket: Socket,
+  next: (err?: ExtendedError) => void,
+) => {
   const token = socket.handshake.auth['token'];
-  if (!token) next(new Error('Authentication error: token not provided'));
+  if (!token)
+    return next(new Error('Authentication error: token not provided'));
 
   try {
     const { id } = jwt.verify(token, SECRET) as { id: string };
     const user = await prisma.user.findUnique({ where: { id } });
-    if (!user) next(new Error('Authentication error: user not found'));
+    if (!user) return next(new Error('Authentication error: user not found'));
 
     socket.data.user = user;
     next();
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      next(new Error('Authentication error: token has expired'));
+      return next(new Error('Authentication error: token has expired'));
     } else if (error instanceof jwt.JsonWebTokenError) {
-      next(new Error('Authentication error: token malformed'));
+      return next(new Error('Authentication error: token malformed'));
     } else {
-      next(new Error('Authentication error: '));
+      return next(new Error('Authentication error'));
     }
   }
 };
 
-const io = new Server(server, {
-  cors: { origin: '*' },
-});
+let io: IServer;
 
-io.use(auth);
+export const initializeSocket = (server: HTTPServer) => {
+  io = new Server(server, {
+    cors: { origin: '*' },
+  });
 
-export { app, server };
+  io.use(socketAuth);
+  io.on('connection', socket => {
+    const { user } = socket.data;
+    socket.join(`user_${user.id}`);
+
+    console.log(user.name, 'Joined');
+    console.log('connected clients :', io.sockets.sockets.size);
+
+    socket.on('disconnect', reason => {
+      console.log(`${user.name} disconnected due to: ${reason}`);
+    });
+
+    /**
+     * Events
+     */
+  });
+
+  return io;
+};
+
+export const getIO = () => {
+  if (!io) {
+    throw new Error('Socket.io not initialized');
+  }
+  return io;
+};

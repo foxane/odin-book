@@ -30,6 +30,7 @@ export const createComment: RequestHandler = async (req, res) => {
       postId: post.id,
       commentId: newComment.id,
     },
+    include: { actor: { select: { id: true, name: true, avatar: true } } },
   });
 
   res.status(201).json({ ...newComment, user: cleanUser(newComment.user) });
