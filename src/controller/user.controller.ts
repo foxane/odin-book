@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prismaClient';
 import { getFileUrl, signJwt } from '@/lib/utils';
 import * as userUtils from '@/lib/user';
 import { uploadToBucket } from '@/middleware/bucket';
+import { getIO } from '@/socket';
 
 /**
  * ====================== User controller ============================
@@ -140,24 +141,28 @@ export const followUser: RequestHandler = async (req, res) => {
     return;
   }
 
-  /**
-   * Update user being followed
-   */
-  await prisma.user.update({
-    where: { id: idToFollow },
-    data: { follower: { connect: { id: req.user.id } } },
-  });
+  const [_user, notif] = await prisma.$transaction([
+    /**
+     * Update user being followed
+     */
+    prisma.user.update({
+      where: { id: idToFollow },
+      data: { follower: { connect: { id: req.user.id } } },
+    }),
 
-  /**
-   * Notification
-   */
-  await prisma.notification.create({
-    data: {
-      receiverId: idToFollow,
-      type: 'follower',
-      actor: { connect: { id: req.user.id } },
-    },
-  });
+    /**
+     * Create notif to target
+     */
+    prisma.notification.create({
+      data: {
+        actorId: req.user.id,
+        receiverId: idToFollow,
+        type: 'follower',
+      },
+    }),
+  ]);
+
+  getIO().to(`user_${idToFollow}`).emit('newNotification', notif);
 
   res.status(204).end();
 };

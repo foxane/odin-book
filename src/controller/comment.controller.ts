@@ -5,6 +5,7 @@ import { cleanManyUser, cleanUser } from '@/lib/user';
 import type { User } from '@prisma/client';
 import { appendIsLiked, sanitizeText } from '@/lib/post';
 import { createCommentFilter } from '@/lib/comment';
+import { getIO } from '@/socket';
 
 export const createComment: RequestHandler = async (req, res) => {
   const { post, user } = req;
@@ -22,7 +23,7 @@ export const createComment: RequestHandler = async (req, res) => {
   /**
    * Create notification
    */
-  await prisma.notification.create({
+  const notif = await prisma.notification.create({
     data: {
       receiverId: post.userId,
       actorId: user.id,
@@ -32,6 +33,8 @@ export const createComment: RequestHandler = async (req, res) => {
     },
     include: { actor: { select: { id: true, name: true, avatar: true } } },
   });
+
+  getIO().to(`user_${post.userId}`).emit('newNotification', notif);
 
   res.status(201).json({ ...newComment, user: cleanUser(newComment.user) });
 };
@@ -107,7 +110,8 @@ export const likeComment: RequestHandler = async (req, res) => {
    * Create notif
    */
   if (isLike) {
-    await prisma.notification.create({
+    const notif = await prisma.notification.create({
+      include: { actor: { select: { id: true, name: true, avatar: true } } },
       data: {
         type: 'comment_liked',
         postId: req.post.id,
@@ -115,6 +119,8 @@ export const likeComment: RequestHandler = async (req, res) => {
         actorId: req.user.id,
       },
     });
+
+    getIO().to(`user_${req.comment.userId}`).emit('newNotification', notif);
   }
 
   res.status(204).end();

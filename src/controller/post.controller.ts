@@ -6,6 +6,7 @@ import { appendIsLiked, createPostFilter, sanitizeText } from '@/lib/post';
 import { cleanManyUser, cleanUser } from '@/lib/user';
 import { getFileUrl } from '@/lib/utils';
 import { uploadToBucket } from '@/middleware/bucket';
+import { getIO } from '@/socket';
 
 export const createPost: RequestHandler = async (req, res) => {
   const { text } = req.body as { text: string };
@@ -15,31 +16,39 @@ export const createPost: RequestHandler = async (req, res) => {
     req.file.path = publicUrl;
   }
 
-  const post = await prisma.post.create({
-    data: {
-      text: sanitizeText(text),
-      media: req.file ? [getFileUrl(req.file)] : [],
-      user: { connect: { id: req.user.id } },
-    },
-  });
+  const [post, followers] = await prisma.$transaction([
+    prisma.post.create({
+      data: {
+        text: sanitizeText(text),
+        media: req.file ? [getFileUrl(req.file)] : [],
+        userId: req.user.id,
+      },
+    }),
+    prisma.user.findMany({
+      where: { following: { some: { id: req.user.id } } },
+      select: { id: true },
+    }),
+  ]);
 
   /**
-   * Create Notification
-   * */
-  const followers = await prisma.user.findMany({
-    where: { following: { some: { id: req.user.id } } },
-    select: { id: true },
-  });
-
+   * Send notif to follower
+   */
   if (followers.length > 0) {
-    await prisma.notification.createMany({
-      data: followers.map(({ id }) => ({
+    const followersId = followers.map(el => el.id);
+
+    const notifs = await prisma.notification.createManyAndReturn({
+      include: { actor: { select: { id: true, name: true, avatar: true } } },
+      data: followersId.map(id => ({
         receiverId: id,
         actorId: req.user.id,
         type: 'post_from_followed',
         postId: post.id,
       })),
     });
+
+    for (const notif of notifs) {
+      getIO().to(`user_${notif.receiverId}`).emit('newNotification', notif);
+    }
   }
 
   res.status(201).json(post);
@@ -162,7 +171,8 @@ export const likePost: RequestHandler = async (req, res) => {
    * Create notification
    */
   if (isLike) {
-    await prisma.notification.create({
+    const notif = await prisma.notification.create({
+      include: { actor: { select: { id: true, name: true, avatar: true } } },
       data: {
         receiverId: post.userId,
         type: 'post_liked',
@@ -170,6 +180,8 @@ export const likePost: RequestHandler = async (req, res) => {
         postId: post.id,
       },
     });
+
+    getIO().to(`user_${post.userId}`).emit('newNotification', notif);
   }
 
   res.status(204).end();
