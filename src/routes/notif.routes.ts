@@ -8,6 +8,6 @@ notifRouter.use(authenticate);
 
 notifRouter.route('/read-all').patch(service.readAll);
 notifRouter.route('/:notifId/read').patch(service.read);
-notifRouter.route('/').get(service.getAll);
+notifRouter.route('/').get(service.getAll).delete(service.deleteAll);
 
 export default notifRouter;

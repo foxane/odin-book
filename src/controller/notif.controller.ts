@@ -49,3 +49,18 @@ export const readAll: RequestHandler = async (req, res) => {
 
   res.status(204).end();
 };
+
+export const deleteAll: RequestHandler = async (req, res) => {
+  const userId = req.user.id;
+  const deleteAll = req.query['urnead'] === 'true';
+
+  await prisma.notification.deleteMany({
+    where: {
+      receiverId: userId,
+      // Defaulted to delete only already read notifs
+      ...(deleteAll ? {} : { isRead: true }),
+    },
+  });
+
+  res.sendStatus(204);
+};
