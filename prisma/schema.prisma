@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id         String  @id @default(uuid())
+  id         Int     @id @default(autoincrement())
   name       String
   email      String  @unique
   password   String?
@@ -28,17 +28,16 @@ model User {
   comment      Comment[] @relation("CommentCreated")
   likedPost    Post[]    @relation("PostLiked")
   likedComment Comment[] @relation("CommentLiked")
-  chatRoom     Room[]    @relation("ChatRoom")
-  messages     Message[]
+  chat         Chat[]
+  message      Message[]
 
-  msg_status_donotuse MessageStatus[] // Each message will have different status for each user
-  notif_donotuse      Notification[] // Filter notif based on receierId instead
+  notif_donotuse Notification[] // Filter notif based on receierId instead
 }
 
 model OAuth {
   id       String @id
   user     User   @relation(fields: [userId], references: [id])
-  userId   String @unique
+  userId   Int    @unique
   provider String
 }
 
@@ -52,8 +51,8 @@ model Post {
   likedBy   User[]    @relation("PostLiked")
   comment   Comment[] @relation("PostComment")
 
-  user   User   @relation("PostCreated", fields: [userId], references: [id])
-  userId String
+  user   User @relation("PostCreated", fields: [userId], references: [id])
+  userId Int
 
   notif_donotuse Notification[]
 }
@@ -67,9 +66,9 @@ model Comment {
   updatedAt DateTime @updatedAt
   likedBy   User[]   @relation("CommentLiked")
 
-  user   User   @relation("CommentCreated", fields: [userId], references: [id])
-  userId String
-  post   Post   @relation("PostComment", fields: [postId], references: [id], onDelete: Cascade)
+  user   User @relation("CommentCreated", fields: [userId], references: [id])
+  userId Int
+  post   Post @relation("PostComment", fields: [postId], references: [id], onDelete: Cascade)
   postId Int
 
   notif_donotuse Notification[]
@@ -81,13 +80,13 @@ model Notification {
   type   NotifType
   date   DateTime  @default(now())
 
-  receiverId String
+  receiverId Int
 
   /**
    * Subject
    */
-  actorId String
-  actor   User   @relation(fields: [actorId], references: [id])
+  actorId Int
+  actor   User @relation(fields: [actorId], references: [id])
 
   /**
    * Resources
@@ -109,39 +108,32 @@ enum NotifType {
 enum Role {
   ADMIN
   USER
+  GUEST
 }
 
-model Room {
-  id       Int       @id @default(autoincrement())
-  users    User[]    @relation("ChatRoom")
-  messages Message[]
+model Chat {
+  id      Int       @id @default(autoincrement())
+  member  User[]
+  message Message[]
 }
 
 model Message {
-  id        Int      @id @default(autoincrement())
-  text      String?
-  media     String[]
-  createdAt DateTime @default(now())
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  status    MsgStatus @default(UNREAD)
+  readAt    DateTime?
 
-  Room          Room?           @relation(fields: [roomId], references: [id])
-  roomId        Int?
-  User          User?           @relation(fields: [userId], references: [id])
-  userId        String?
-  MessageStatus MessageStatus[]
-}
+  text  String?
+  media String[]
 
-model MessageStatus {
-  status MsgStatus
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 
-  messageId Int
-  Message   Message @relation(fields: [messageId], references: [id])
-  User      User    @relation(fields: [userId], references: [id])
-  userId    String
-
-  @@id(name: "statusId", [userId, messageId])
+  chat   Chat? @relation(fields: [chatId], references: [id])
+  chatId Int?
 }
 
 enum MsgStatus {
-  DELIVERED
+  UNREAD
   READ
 }

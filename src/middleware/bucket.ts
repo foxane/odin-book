@@ -14,7 +14,7 @@ const storageClient = new StorageClient(BUCKET_URL, {
  */
 export const uploadToBucket = async (
   file: Express.Multer.File,
-  userId: string,
+  userId: number,
 ) => {
   /**
    * Id + date + extensions

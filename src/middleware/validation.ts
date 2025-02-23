@@ -113,7 +113,7 @@ export const userUpdate = [
        * Check if the email is already connected to a different user.
        * If yes, throw an error. If no, allow the update.
        */
-      if (existingUser && existingUser.id !== req.user.id) {
+      if (existingUser && existingUser.id !== req['user'].id) {
         throw new Error('Email already in use');
       }
 

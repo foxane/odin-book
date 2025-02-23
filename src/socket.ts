@@ -16,7 +16,7 @@ export const socketAuth = async (
     return next(new Error('Authentication error: token not provided'));
 
   try {
-    const { id } = jwt.verify(token, SECRET) as { id: string };
+    const { id } = jwt.verify(token, SECRET) as { id: number };
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) return next(new Error('Authentication error: user not found'));
 
@@ -44,23 +44,24 @@ export const initializeSocket = (server: HTTPServer) => {
   io.use(socketAuth);
   io.on('connection', socket => {
     const { user } = socket.data;
+    const userId = user.id.toString();
     socket.join(`user_${user.id}`);
 
     // Create new set if not exist
-    if (!onlineUsers.has(user.id)) {
-      onlineUsers.set(user.id, new Set());
+    if (!onlineUsers.has(userId)) {
+      onlineUsers.set(userId, new Set());
     }
-    onlineUsers.get(user.id)!.add(socket.id);
+    onlineUsers.get(userId)!.add(socket.id);
 
     console.log(user.name, 'joined.', onlineUsers);
 
     socket.on('disconnect', () => {
-      const userSockets = onlineUsers.get(user.id);
+      const userSockets = onlineUsers.get(userId);
       if (userSockets) {
         userSockets.delete(socket.id);
         if (userSockets.size === 0) {
           // Truly disconnect, no other socket connected
-          onlineUsers.delete(user.id);
+          onlineUsers.delete(userId);
         }
       }
 
@@ -68,8 +69,22 @@ export const initializeSocket = (server: HTTPServer) => {
     });
 
     /**
-     * Events
+     * Messages events
      */
+    socket.on('sendMessage', async _newMessage => {
+      /**
+       * Create new chat when needed
+       */
+      /**
+       * Upload to bucket on prod. save to storage on dev
+       * To be added later
+       * ...
+       */
+      /**
+       * Create message record
+       */
+      // Emit to targetId
+    });
   });
 
   return io;
@@ -82,6 +97,9 @@ export const getIO = () => {
   return io;
 };
 
+/**
+ * Functions to send notification anywhere on the app
+ */
 export const socketService = {
   sendNotif: (id: string, notif: Notification) => {
     getIO().to(`user_${id}`).emit('newNotification', notif);

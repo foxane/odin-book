@@ -47,7 +47,7 @@ export const getAllUser: RequestHandler = async (req, res) => {
 };
 
 export const getSingleUser: RequestHandler = async (req, res) => {
-  const id = req.params['userId'];
+  const id = parseInt(req.params['userId']);
   const user = await prisma.user.findUnique({
     where: { id },
     include: {
@@ -72,13 +72,13 @@ type UserUpdatePayload = {
 };
 
 export const updateUser: RequestHandler = async (req, res) => {
-  const toUpdateId = req.params['userId'];
+  const toUpdateId = parseInt(req.params['userId']);
   const { id } = req.user as User;
 
   /**
    * Prevent update guest account or not respective user
    */
-  if (toUpdateId !== id || toUpdateId === 'guest') {
+  if (toUpdateId !== id || req.user.role === 'GUEST') {
     res.status(403).json({ message: 'Unauthorized' });
     return;
   }
@@ -108,7 +108,7 @@ export const updateImage: RequestHandler = async (req, res) => {
     return;
   }
 
-  if (req.user.id !== req.params['userId']) {
+  if (req.user.id !== parseInt(req.params['userId'])) {
     res.status(403).json({ message: 'Unauthorized' });
     return;
   }
@@ -134,7 +134,7 @@ export const updateImage: RequestHandler = async (req, res) => {
  */
 
 export const followUser: RequestHandler = async (req, res) => {
-  const idToFollow = req.params['userId'];
+  const idToFollow = parseInt(req.params['userId']);
 
   if (idToFollow === req.user.id) {
     res.status(400).json({ message: 'You cannot follow yourself' });
@@ -168,7 +168,7 @@ export const followUser: RequestHandler = async (req, res) => {
 };
 
 export const unfollowUser: RequestHandler = async (req, res) => {
-  const idToUnfollow = req.params['userId'];
+  const idToUnfollow = parseInt(req.params['userId']);
 
   if (idToUnfollow === req.user.id) {
     res.status(400).json({ message: 'You cannot unfollow yourself' });
@@ -184,7 +184,7 @@ export const unfollowUser: RequestHandler = async (req, res) => {
 };
 
 export const getFollowers: RequestHandler = async (req, res) => {
-  const { userId } = req.params;
+  const userId = parseInt(req.params['userId']);
 
   const followers = await prisma.user.findMany({
     ...userUtils.createUserFilter(req.query),
@@ -205,7 +205,7 @@ export const getFollowers: RequestHandler = async (req, res) => {
 };
 
 export const getFollowing: RequestHandler = async (req, res) => {
-  const { userId } = req.params;
+  const userId = parseInt(req.params['userId']);
 
   const followers = await prisma.user.findMany({
     ...userUtils.createUserFilter(req.query),

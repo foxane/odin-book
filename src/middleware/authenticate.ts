@@ -12,7 +12,7 @@ export const authenticate: RequestHandler = async (req, res, next) => {
   }
 
   try {
-    const { id } = jwt.verify(token, process.env.JWT_SECRET) as { id: string };
+    const { id } = jwt.verify(token, process.env.JWT_SECRET) as { id: number };
     const user = await prisma.user.findUnique({ where: { id } });
 
     if (!user) {
