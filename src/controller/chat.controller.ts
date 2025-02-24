@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prismaClient';
-import { cleanManyUser } from '@/lib/user';
 import { createCursor } from '@/lib/utils';
 import { Prisma } from '@prisma/client';
 import type { RequestHandler } from 'express';
@@ -17,10 +16,31 @@ export const getAllChat: RequestHandler = async (req, res) => {
     where: {
       member: { some: { id: req.user.id } },
     },
-    include: { member: true },
+    include: {
+      member: { select: { id: true, name: true, avatar: true } },
+
+      // Last message
+      message: {
+        take: 1,
+        orderBy: { createdAt: 'desc' },
+        include: { user: { select: { id: true, name: true, avatar: true } } },
+      },
+
+      // Unread count
+      _count: {
+        select: {
+          message: {
+            where: {
+              userId: { not: req.user.id },
+              status: 'UNREAD',
+            },
+          },
+        },
+      },
+    },
   });
 
-  res.json(chat.map(r => ({ ...r, member: cleanManyUser(r.member) })));
+  res.json(chat);
 };
 
 export const createPrivateChat: RequestHandler = async (req, res) => {

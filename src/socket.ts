@@ -44,24 +44,23 @@ export const initializeSocket = (server: HTTPServer) => {
   io.use(socketAuth);
   io.on('connection', socket => {
     const { user } = socket.data;
-    const userId = user.id.toString();
     socket.join(`user_${user.id}`);
 
     // Create new set if not exist
-    if (!onlineUsers.has(userId)) {
-      onlineUsers.set(userId, new Set());
+    if (!onlineUsers.has(user.id.toString())) {
+      onlineUsers.set(user.id.toString(), new Set());
     }
-    onlineUsers.get(userId)!.add(socket.id);
+    onlineUsers.get(user.id.toString())!.add(socket.id);
 
     console.log(user.name, 'joined.', onlineUsers);
 
     socket.on('disconnect', () => {
-      const userSockets = onlineUsers.get(userId);
+      const userSockets = onlineUsers.get(user.id.toString());
       if (userSockets) {
         userSockets.delete(socket.id);
         if (userSockets.size === 0) {
           // Truly disconnect, no other socket connected
-          onlineUsers.delete(userId);
+          onlineUsers.delete(user.id.toString());
         }
       }
 
@@ -69,21 +68,53 @@ export const initializeSocket = (server: HTTPServer) => {
     });
 
     /**
-     * Messages events
+     * ===================== Message events =======================
      */
-    socket.on('sendMessage', async _newMessage => {
-      /**
-       * Create new chat when needed
-       */
+
+    socket.on('createChat', async targetId => {
+      let chat = await prisma.chat.findFirst({
+        where: {
+          member: { every: { id: { in: [targetId, user.id] } } },
+        },
+      });
+
+      if (!chat) {
+        chat = await prisma.chat.create({
+          data: { member: { connect: [{ id: targetId }, { id: user.id }] } },
+        });
+      }
+
+      socket.emit('chatCreated', chat); // Send back to creator
+      socket.to(`user_${user.id}`).emit('newChat', chat);
+      socket.to(`user_${targetId}`).emit('newChat', chat); // Notify other user
+    });
+
+    socket.on('sendMessage', async e => {
+      const chatId = e.chatId;
+
       /**
        * Upload to bucket on prod. save to storage on dev
        * To be added later
        * ...
        */
-      /**
-       * Create message record
-       */
-      // Emit to targetId
+
+      const message = await prisma.message.create({
+        include: { user: { select: { id: true, name: true, avatar: true } } },
+        data: {
+          chatId,
+          text: e.message.text,
+          userId: user.id,
+        },
+      });
+
+      socket.to(`user_${e.targetId}`).emit('newMessage', { chatId, message });
+    });
+
+    socket.on('readChat', async chatId => {
+      await prisma.message.updateMany({
+        data: { status: 'READ', readAt: new Date() },
+        where: { chatId, userId: { not: user.id } }, // All received msg
+      });
     });
   });
 

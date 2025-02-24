@@ -22,7 +22,7 @@ const server = createServer(app);
 app.use((_req, _res, next) => {
   setTimeout(() => {
     next();
-  }, 1000);
+  }, 500);
 });
 
 initializePassport();
@@ -39,7 +39,7 @@ app.use('/user{s}', userRouter);
 app.use('/post{s}/:postId/comment{s}', verifyPostExist, commentRouter);
 app.use('/post{s}', postRouter);
 app.use('/notification{S}', notifRouter);
-app.use('/chat', chatRouter);
+app.use('/chat{s}', chatRouter);
 
 app.use(errorMiddleware);
 
