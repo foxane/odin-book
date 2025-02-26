@@ -107,6 +107,7 @@ export const initializeSocket = (server: HTTPServer) => {
         },
       });
 
+      socket.emit('newMessage', { chatId, message });
       socket.to(`user_${e.targetId}`).emit('newMessage', { chatId, message });
     });
 

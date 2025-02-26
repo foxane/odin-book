@@ -1,23 +1,32 @@
 import { prisma } from '@/lib/prismaClient';
-import { createCursor } from '@/lib/utils';
-import { Prisma } from '@prisma/client';
+import { type Message } from '@prisma/client';
 import type { RequestHandler } from 'express';
 
+/**
+ * Chat model with additional metadata for preview purposes
+ */
+interface ChatSummary {
+  id: number;
+  lastMessage: Message | null;
+  unreadCount: number;
+  otherUser: {
+    id: number;
+    name: string;
+    avatar: string | null;
+  };
+}
+
 export const getAllChat: RequestHandler = async (req, res) => {
-  const { cursor, take } = req.query as { cursor?: string; take?: string };
-
-  const filter = createCursor<Prisma.ChatFindManyArgs>(
-    cursor ? parseInt(cursor) : '',
-    take,
-  );
-
-  const chat = await prisma.chat.findMany({
-    ...filter,
+  const chats = await prisma.chat.findMany({
     where: {
       member: { some: { id: req.user.id } },
     },
     include: {
-      member: { select: { id: true, name: true, avatar: true } },
+      // Other user
+      member: {
+        where: { id: { not: req.user.id } },
+        select: { id: true, name: true, avatar: true },
+      },
 
       // Last message
       message: {
@@ -40,7 +49,19 @@ export const getAllChat: RequestHandler = async (req, res) => {
     },
   });
 
-  res.json(chat);
+  const chatSummaries: ChatSummary[] = chats.map(chat => {
+    const { id, _count, member, message } = chat;
+    const result: ChatSummary = {
+      id,
+      lastMessage: message[0] ?? null,
+      otherUser: member[0],
+      unreadCount: _count.message,
+    };
+
+    return result;
+  });
+
+  res.json(chatSummaries);
 };
 
 export const createPrivateChat: RequestHandler = async (req, res) => {

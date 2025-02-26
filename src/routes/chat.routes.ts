@@ -6,7 +6,7 @@ const chatRouter = Router();
 
 chatRouter.use(authenticate);
 
-chatRouter.route('/:chatId').get(service.getAllChat);
+chatRouter.route('/:chatId/messages').get(service.getMessageByChat);
 chatRouter.route('/').get(service.getAllChat);
 
 export default chatRouter;
