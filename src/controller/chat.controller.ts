@@ -5,7 +5,7 @@ import type { RequestHandler } from 'express';
 /**
  * Chat model with additional metadata for preview purposes
  */
-interface ChatSummary {
+export interface ChatSummary {
   id: number;
   lastMessage: Message | null;
   unreadCount: number;
@@ -103,6 +103,7 @@ export const getMessageByChat: RequestHandler = async (req, res) => {
     include: {
       user: { select: { id: true, avatar: true, name: true } },
     },
+    orderBy: { createdAt: 'desc' },
   });
 
   res.json(msgs);

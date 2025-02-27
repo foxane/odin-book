@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from './lib/prismaClient';
 import type { IServer } from 'types/socket';
 import type { Notification } from '@prisma/client';
+import type { ChatSummary } from './controller/chat.controller';
 
 const SECRET = process.env.JWT_SECRET;
 
@@ -51,8 +52,7 @@ export const initializeSocket = (server: HTTPServer) => {
       onlineUsers.set(user.id.toString(), new Set());
     }
     onlineUsers.get(user.id.toString())!.add(socket.id);
-
-    console.log(user.name, 'joined.', onlineUsers);
+    console.log(onlineUsers);
 
     socket.on('disconnect', () => {
       const userSockets = onlineUsers.get(user.id.toString());
@@ -63,19 +63,15 @@ export const initializeSocket = (server: HTTPServer) => {
           onlineUsers.delete(user.id.toString());
         }
       }
-
-      console.log(`${user.name} disconnected. Online users:`, onlineUsers);
     });
 
     /**
      * ===================== Message events =======================
      */
 
-    socket.on('createChat', async targetId => {
+    socket.on('createChat', async (targetId, ack) => {
       let chat = await prisma.chat.findFirst({
-        where: {
-          member: { every: { id: { in: [targetId, user.id] } } },
-        },
+        where: { member: { every: { id: { in: [targetId, user.id] } } } },
       });
 
       if (!chat) {
@@ -84,13 +80,57 @@ export const initializeSocket = (server: HTTPServer) => {
         });
       }
 
-      socket.emit('chatCreated', chat); // Send back to creator
-      socket.to(`user_${user.id}`).emit('newChat', chat);
-      socket.to(`user_${targetId}`).emit('newChat', chat); // Notify other user
+      const data = await prisma.chat.findUniqueOrThrow({
+        where: { id: chat.id },
+        include: {
+          // Other user
+          member: {
+            where: { id: { not: user.id } },
+            select: { id: true, name: true, avatar: true },
+          },
+
+          // Last message
+          message: {
+            take: 1,
+            orderBy: { createdAt: 'desc' },
+            include: {
+              user: { select: { id: true, name: true, avatar: true } },
+            },
+          },
+
+          // Unread count
+          _count: {
+            select: {
+              message: {
+                where: {
+                  userId: { not: user.id },
+                  status: 'UNREAD',
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const result: ChatSummary = {
+        id: data.id,
+        lastMessage: data.message[0] ?? null,
+        otherUser: data.member[0],
+        unreadCount: data._count.message,
+      };
+
+      ack(result);
+      socket.emit('newChat', result);
+      socket.to(`user_${targetId}`).emit('newChat', result); // Notify other user
     });
 
-    socket.on('sendMessage', async e => {
-      const chatId = e.chatId;
+    socket.on('sendMessage', async (payload, ack) => {
+      const chatId = payload.chatId;
+      const chat = await prisma.chat.findUnique({
+        where: { id: chatId },
+        include: { member: { select: { id: true } } },
+      });
+      if (!chat) return;
 
       /**
        * Upload to bucket on prod. save to storage on dev
@@ -102,20 +142,34 @@ export const initializeSocket = (server: HTTPServer) => {
         include: { user: { select: { id: true, name: true, avatar: true } } },
         data: {
           chatId,
-          text: e.message.text,
+          text: payload.message.text,
           userId: user.id,
         },
       });
 
-      socket.emit('newMessage', { chatId, message });
-      socket.to(`user_${e.targetId}`).emit('newMessage', { chatId, message });
+      setTimeout(() => {
+        ack(message);
+        socket
+          .to(`user_${chat.member.find(u => u.id !== user.id)!.id}`)
+          .emit('newMessage', message);
+      }, 1000);
     });
 
-    socket.on('readChat', async chatId => {
-      await prisma.message.updateMany({
-        data: { status: 'READ', readAt: new Date() },
-        where: { chatId, userId: { not: user.id } }, // All received msg
-      });
+    socket.on('markChatAsRead', async chatId => {
+      const [_, chat] = await prisma.$transaction([
+        prisma.message.updateMany({
+          data: { status: 'READ', readAt: new Date() },
+          where: { chatId, userId: { not: user.id } }, // All received msg
+        }),
+        prisma.chat.findUnique({
+          where: { id: chatId },
+          include: { member: { select: { id: true } } },
+        }),
+      ]);
+
+      const otherUser = chat!.member.find(el => el.id !== user.id);
+
+      socket.to(`user_${otherUser!.id}`).emit('readChat', chat!.id);
     });
   });
 
