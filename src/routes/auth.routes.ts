@@ -3,11 +3,17 @@ import passport from 'passport';
 
 import * as validate from '@/middleware/validation';
 import { createUser } from '@/controller/user.controller';
-import { getSelf, login, OAuthCallback } from '@/controller/auth.controller';
+import {
+  getSelf,
+  guestLogin,
+  login,
+  OAuthCallback,
+} from '@/controller/auth.controller';
 import { authenticate } from '@/middleware/authenticate';
 
 const authRouter = Router();
 
+authRouter.get('/guest', guestLogin);
 authRouter.get('/me', authenticate, getSelf);
 authRouter.post('/register', validate.signup, createUser);
 authRouter.post('/login', login);

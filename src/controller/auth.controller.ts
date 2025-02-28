@@ -4,6 +4,7 @@ import passport from 'passport';
 
 import { signJwt } from '@/lib/utils';
 import { cleanUser } from '@/lib/user';
+import { prisma } from '@/lib/prismaClient';
 
 export const login: RequestHandler = (req, res, next) => {
   passport.authenticate(
@@ -53,4 +54,23 @@ export const OAuthCallback: RequestHandler[] = [
 
 export const getSelf: RequestHandler = (req, res) => {
   res.json(cleanUser(req.user, { owner: true }));
+};
+
+export const guestLogin: RequestHandler = async (_req, res) => {
+  let guest = await prisma.user.findFirst({
+    where: { role: 'GUEST' },
+  });
+
+  console.log(guest);
+
+  if (!guest)
+    guest = await prisma.user.create({
+      data: {
+        role: 'GUEST',
+        name: 'Guest Account',
+        email: 'guestemail@me.com',
+      },
+    });
+
+  res.json({ user: guest, token: signJwt(guest) });
 };
