@@ -4,6 +4,7 @@ import passport from 'passport';
 import * as validate from '@/middleware/validation';
 import { createUser } from '@/controller/user.controller';
 import {
+  exchangeToken,
   getSelf,
   guestLogin,
   login,
@@ -15,9 +16,13 @@ const authRouter = Router();
 
 authRouter.get('/guest', guestLogin);
 authRouter.get('/me', authenticate, getSelf);
+authRouter.post('/exchange-token', exchangeToken);
 authRouter.post('/register', validate.signup, createUser);
 authRouter.post('/login', login);
-authRouter.get('/callback', OAuthCallback); // Handle all OAuth callback regardless provider
+/**
+ * Handle all callback and send jwt
+ */
+authRouter.get('/callback', OAuthCallback);
 
 authRouter.get(
   '/github',
