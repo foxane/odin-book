@@ -147,12 +147,11 @@ export const initializeSocket = (server: HTTPServer) => {
         },
       });
 
-      setTimeout(() => {
-        ack(message);
-        socket
-          .to(`user_${chat.member.find(u => u.id !== user.id)!.id}`)
-          .emit('newMessage', message);
-      }, 1000);
+      ack(message);
+      socket.emit('newMessage', message);
+      socket
+        .to(`user_${chat.member.find(u => u.id !== user.id)!.id}`)
+        .emit('newMessage', message);
     });
 
     socket.on('markChatAsRead', async chatId => {

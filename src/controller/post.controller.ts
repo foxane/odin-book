@@ -23,6 +23,10 @@ export const createPost: RequestHandler = async (req, res) => {
         media: req.file ? [getFileUrl(req.file)] : [],
         userId: req.user.id,
       },
+      include: {
+        user: true,
+        _count: { select: { comment: true, likedBy: true } },
+      },
     }),
     prisma.user.findMany({
       where: { following: { some: { id: req.user.id } } },
@@ -125,10 +129,14 @@ export const updatePost: RequestHandler = async (req, res) => {
     include: {
       _count: { select: { likedBy: true } },
       likedBy: { where: { id: req.user.id } },
+      user: true,
     },
   });
 
-  res.json(appendIsLiked(updatedPost));
+  res.json({
+    ...appendIsLiked(updatedPost),
+    user: cleanUser(updatedPost.user),
+  });
 };
 
 export const deletePost: RequestHandler = async (req, res) => {

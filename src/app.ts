@@ -19,11 +19,11 @@ import { initializeSocket } from './socket';
 const app = express();
 const server = createServer(app);
 
-app.use((_req, _res, next) => {
-  setTimeout(() => {
-    next();
-  }, 500);
-});
+// app.use((_req, _res, next) => {
+//   setTimeout(() => {
+//     next();
+//   }, 1000);
+// });
 
 initializePassport();
 initializeSocket(server);
