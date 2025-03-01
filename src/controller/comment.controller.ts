@@ -17,7 +17,7 @@ export const createComment: RequestHandler = async (req, res) => {
       userId: user.id,
       postId: post.id,
     },
-    include: { user: true },
+    include: { user: true, _count: { select: { likedBy: true } } },
   });
 
   /**
@@ -74,9 +74,15 @@ export const updateComment: RequestHandler = async (req, res) => {
   const updated = await prisma.comment.update({
     where: { id: comment.id },
     data: { text: sanitizeText(text) },
+    include: {
+      user: true,
+      _count: {
+        select: { likedBy: true },
+      },
+    },
   });
 
-  res.json(updated);
+  res.json({ ...updated, user: cleanUser(updated.user) });
 };
 
 export const deleteComment: RequestHandler = async (req, res) => {
