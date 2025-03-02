@@ -1,22 +1,32 @@
-FROM node:22-alpine
-WORKDIR /home/node/app
-
-# Copy package files first
-COPY package*.json ./
+FROM oven/bun:1 AS base
+WORKDIR /usr/src/app
 
 # Install dependencies
-RUN npm install
+COPY package*.json bun.lock ./
+RUN bun install --frozen-lockfile
 
-# Copy source files
+# Copy the rest of the source files
 COPY . .
 
-# Build
-RUN npx prisma generate
-RUN npm run build
+# Run after copy in case of schema change
+RUN bunx prisma generate
 
-# Clean up source and dev dependencies
-RUN npm prune --production && \
-    rm -rf src test types
+# Create minified js file in dist/
+RUN bun build src/app.ts --outdir=dist --target=bun --minify
 
+# Production stage (final image)
+FROM oven/bun:slim
+WORKDIR /app
+
+# Copy the build output from the base stage
+COPY --from=base /usr/src/app/dist ./dist
+
+# Prisma client (runtime deps)
+COPY --from=base /usr/src/app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=base /usr/src/app/node_modules/@prisma ./node_modules/@prisma
+
+# Create log dir
+RUN mkdir -p /app/logs && chown -R bun:bun /app/logs
+USER bun
 EXPOSE 3000
-CMD [ "node", "dist/app.js" ]
+CMD ["bun", "dist/app.js"]

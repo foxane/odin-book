@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/app.ts",
-    "build": "rm -rf dist && bun build src/app.ts --outdir=dist --target=node",
+    "build": "rm -rf dist && bun build src/app.ts --outdir=dist --target=bun --minify",
     "start": "bun dist/app.js",
     "start:prod": "bun run build && bun run start",
     "docker:build": "docker build -t odinbook-api . && docker image prune -f",
