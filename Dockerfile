@@ -12,7 +12,7 @@ COPY . .
 RUN bunx prisma generate
 
 # Create minified js file in dist/
-RUN bun build src/app.ts --outdir=dist --target=bun --minify
+RUN NODE_ENV=production bun build src/app.ts --outdir=dist --target=bun --minify
 
 # Production stage (final image)
 FROM oven/bun:slim
