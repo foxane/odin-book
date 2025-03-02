@@ -3,9 +3,10 @@
   "module": "src/app.ts",
   "type": "module",
   "scripts": {
-    "dev": "tsx --watch --env-file=.env.development src/app.ts",
-    "build": "rm -rf ./dist && tsc && tsc-alias",
-    "start": "node dist/app.js",
+    "dev": "bun --watch src/app.ts",
+    "build": "rm -rf dist && bun build src/app.ts --outdir=dist --target=node",
+    "start": "bun dist/app.js",
+    "start:prod": "bun run build && bun run start",
     "docker:build": "docker build -t odinbook-api . && docker image prune -f",
     "docker:run": "docker run -d --name odinbook-api -v $(pwd)/logs:/home/node/app/logs --env-file .env.production -p 3000:3000 odinbook-api",
     "docker:logs": "docker logs -f odinbook-api",
