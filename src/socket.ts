@@ -5,6 +5,7 @@ import { prisma } from './lib/prismaClient';
 import type { IServer } from 'types/socket';
 import type { Notification } from '@prisma/client';
 import type { ChatSummary } from './controller/chat.controller';
+import { cleanUser } from './lib/user';
 
 const SECRET = process.env.JWT_SECRET;
 
@@ -46,6 +47,7 @@ export const initializeSocket = (server: HTTPServer) => {
   io.on('connection', async socket => {
     const { user } = socket.data;
     socket.join(`user_${user.id}`);
+    socket.broadcast.emit('userConnected', cleanUser(user));
 
     // Create new set if not exist
     if (!onlineUsers.has(user.id.toString())) {
@@ -66,6 +68,7 @@ export const initializeSocket = (server: HTTPServer) => {
           /**
            * Truly disconnect, no other socket connected
            * */
+          socket.broadcast.emit('userDisconnected', cleanUser(user));
           onlineUsers.delete(user.id.toString());
           await prisma.user.update({
             where: { id: user.id },

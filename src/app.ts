@@ -22,6 +22,11 @@ const server = createServer(app);
 initializePassport();
 initializeSocket(server);
 
+app.use((req, res, next) => {
+  setTimeout(() => {
+    next();
+  }, 1000);
+});
 app.use(cors());
 app.use(express.json());
 app.use(morganMiddleware);
