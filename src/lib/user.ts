@@ -38,6 +38,7 @@ type UserQuery = {
   search?: string;
   take?: string;
   cursor?: string;
+  online?: string;
 };
 export const createUserFilter = (query: UserQuery) => {
   // Filter
@@ -45,6 +46,10 @@ export const createUserFilter = (query: UserQuery) => {
 
   if (query.search)
     where.name = { contains: query.search, mode: 'insensitive' };
+
+  // No online query will return all users
+  if (query.online === 'true') where.lastSeen = null;
+  else if (query.online === 'false') where.lastSeen = { not: null };
 
   // Staging
   const result: Prisma.UserFindManyArgs = {

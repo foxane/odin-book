@@ -178,7 +178,7 @@ export const likePost: RequestHandler = async (req, res) => {
   /**
    * Create notification
    */
-  if (isLike) {
+  if (req.user.id !== post.userId && isLike) {
     const notif = await prisma.notification.create({
       include: { actor: { select: { id: true, name: true, avatar: true } } },
       data: {

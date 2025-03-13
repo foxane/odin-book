@@ -43,7 +43,7 @@ export const initializeSocket = (server: HTTPServer) => {
   });
 
   io.use(socketAuth);
-  io.on('connection', socket => {
+  io.on('connection', async socket => {
     const { user } = socket.data;
     socket.join(`user_${user.id}`);
 
@@ -52,17 +52,28 @@ export const initializeSocket = (server: HTTPServer) => {
       onlineUsers.set(user.id.toString(), new Set());
     }
     onlineUsers.get(user.id.toString())!.add(socket.id);
-    console.log(onlineUsers);
+    console.log('connected count: ', io.engine.clientsCount);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastSeen: null },
+    });
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
       const userSockets = onlineUsers.get(user.id.toString());
       if (userSockets) {
         userSockets.delete(socket.id);
         if (userSockets.size === 0) {
-          // Truly disconnect, no other socket connected
+          /**
+           * Truly disconnect, no other socket connected
+           * */
           onlineUsers.delete(user.id.toString());
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastSeen: new Date() },
+          });
         }
       }
+      console.log('disconnected count: ', onlineUsers);
     });
 
     /**

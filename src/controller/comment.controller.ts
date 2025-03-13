@@ -21,20 +21,22 @@ export const createComment: RequestHandler = async (req, res) => {
   });
 
   /**
-   * Create notification
+   * Create notification if actor is not receiver
    */
-  const notif = await prisma.notification.create({
-    data: {
-      receiverId: post.userId,
-      actorId: user.id,
-      type: 'post_commented',
-      postId: post.id,
-      commentId: newComment.id,
-    },
-    include: { actor: { select: { id: true, name: true, avatar: true } } },
-  });
+  if (user.id !== post.userId) {
+    const notif = await prisma.notification.create({
+      data: {
+        receiverId: post.userId,
+        actorId: user.id,
+        type: 'post_commented',
+        postId: post.id,
+        commentId: newComment.id,
+      },
+      include: { actor: { select: { id: true, name: true, avatar: true } } },
+    });
 
-  getIO().to(`user_${post.userId}`).emit('newNotification', notif);
+    getIO().to(`user_${post.userId}`).emit('newNotification', notif);
+  }
 
   res.status(201).json({ ...newComment, user: cleanUser(newComment.user) });
 };
@@ -113,9 +115,9 @@ export const likeComment: RequestHandler = async (req, res) => {
   });
 
   /**
-   * Create notif
+   * Create notif if actor is not receiver
    */
-  if (isLike) {
+  if (req.comment.userId !== req.user.id && isLike) {
     const notif = await prisma.notification.create({
       include: { actor: { select: { id: true, name: true, avatar: true } } },
       data: {
@@ -123,6 +125,7 @@ export const likeComment: RequestHandler = async (req, res) => {
         postId: req.post.id,
         receiverId: req.comment.userId,
         actorId: req.user.id,
+        commentId,
       },
     });
 

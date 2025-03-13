@@ -16,7 +16,8 @@ model User {
   background String?
   bio        String?
 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  lastSeen  DateTime? @default(now())
 
   provider OAuth?
   role     Role   @default(USER)

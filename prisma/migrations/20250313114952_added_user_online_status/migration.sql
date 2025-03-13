@@ -17,6 +17,7 @@ CREATE TABLE "User" (
     "background" TEXT,
     "bio" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastSeen" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "role" "Role" NOT NULL DEFAULT 'USER',
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")

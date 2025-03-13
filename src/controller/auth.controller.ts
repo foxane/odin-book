@@ -96,18 +96,18 @@ export const exchangeToken: RequestHandler = async (req, res) => {
       temp: boolean;
     };
     if (!decoded.temp) {
-      res.status(401).json({ error: 'Invalid token type' });
+      res.status(401).json({ message: 'Invalid token type' });
       return;
     }
 
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });
     if (!user) {
-      res.status(401).json({ error: 'User not found!' });
+      res.status(401).json({ message: 'User not found!' });
       return;
     }
 
     res.json({ token: signJwt(user) });
   } catch (error) {
-    res.status(401).json({ error: 'Invalid or expired token' });
+    res.status(401).json({ message: 'Invalid or expired token' });
   }
 };

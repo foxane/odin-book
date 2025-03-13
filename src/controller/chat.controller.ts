@@ -25,7 +25,7 @@ export const getAllChat: RequestHandler = async (req, res) => {
       // Other user
       member: {
         where: { id: { not: req.user.id } },
-        select: { id: true, name: true, avatar: true },
+        select: { id: true, name: true, avatar: true, lastSeen: true },
       },
 
       // Last message

@@ -13,7 +13,7 @@
     "docker:start": "npm run docker:build && npm run docker:run && npm run docker:logs"
   },
   "dependencies": {
-    "@prisma/client": "^6.2.1",
+    "@prisma/client": "^6.5.0",
     "@supabase/storage-js": "^2.7.1",
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
