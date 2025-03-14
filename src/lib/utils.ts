@@ -8,6 +8,8 @@ export const checkEnv = () => {
     'PORT',
     'NODE_ENV',
 
+    'FRONTEND_URL',
+
     'JWT_SECRET',
     'DATABASE_URL',
 
