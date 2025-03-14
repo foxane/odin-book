@@ -22,11 +22,13 @@ const server = createServer(app);
 initializePassport();
 initializeSocket(server);
 
-app.use((req, res, next) => {
-  setTimeout(() => {
-    next();
-  }, 1000);
-});
+if (process.env.NODE_ENV !== 'production')
+  app.use((_req, _res, next) => {
+    setTimeout(() => {
+      next();
+    }, 1000);
+  });
+
 app.use(cors());
 app.use(express.json());
 app.use(morganMiddleware);
