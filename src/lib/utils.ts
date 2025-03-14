@@ -71,7 +71,7 @@ export const getFileUrl = (file: Express.Multer.File) => {
 };
 
 export const createCursor = <T>(cursor?: string | number, take?: string): T => {
-  if (!cursor) return {} as T;
+  if (!cursor) return { take: 10 } as T;
 
   return {
     ...(cursor ? { cursor: { id: cursor } } : {}),

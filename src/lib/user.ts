@@ -1,5 +1,4 @@
 import type { Prisma, User } from '@prisma/client';
-import { createCursor } from './utils';
 
 type CleanUserOptions = { owner?: boolean; admin?: boolean };
 export const cleanUser = (
@@ -51,11 +50,20 @@ export const createUserFilter = (query: UserQuery) => {
   if (query.online === 'true') where.lastSeen = null;
   else if (query.online === 'false') where.lastSeen = { not: null };
 
+  // Pagination
+  const take = query.take ? parseInt(query.take) : 10; // Default
+
   // Staging
   const result: Prisma.UserFindManyArgs = {
     where,
-    ...createCursor(query.cursor, query.take),
+    take,
   };
+
+  if (query.cursor) {
+    result.cursor = { id: Number(query.cursor) };
+
+    result.skip = 1;
+  }
 
   return result;
 };
