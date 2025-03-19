@@ -116,9 +116,9 @@ export const getPostByUser: RequestHandler = async (req, res) => {
 
 export const updatePost: RequestHandler = async (req, res) => {
   const { text } = req.body;
-  const { post } = req;
+  const { post, user } = req;
 
-  if (post.userId !== req.user.id) {
+  if (post.userId !== user.id || user.role === 'GUEST') {
     res.status(403).json({ message: 'Unauthorized' });
     return;
   }
@@ -128,7 +128,7 @@ export const updatePost: RequestHandler = async (req, res) => {
     data: { text: sanitizeText(text) },
     include: {
       _count: { select: { likedBy: true } },
-      likedBy: { where: { id: req.user.id } },
+      likedBy: { where: { id: user.id } },
       user: true,
     },
   });
@@ -140,9 +140,9 @@ export const updatePost: RequestHandler = async (req, res) => {
 };
 
 export const deletePost: RequestHandler = async (req, res) => {
-  const { post } = req;
+  const { post, user } = req;
 
-  if (post.userId !== req.user.id) {
+  if (post.userId !== user.id || user.role === 'GUEST') {
     res.status(403).json({ message: 'Unauthorized' });
     return;
   }

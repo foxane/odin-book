@@ -64,11 +64,10 @@ export const getCommentByPost: RequestHandler = async (req, res) => {
 };
 
 export const updateComment: RequestHandler = async (req, res) => {
-  const userId = req.user.id;
   const { text } = req.body;
-  const { comment } = req;
+  const { comment, user } = req;
 
-  if (comment.userId !== userId) {
+  if (comment.userId !== user.id || user.role === 'GUEST') {
     res.status(403).json({ message: 'Unauthorized' });
     return;
   }
@@ -88,10 +87,9 @@ export const updateComment: RequestHandler = async (req, res) => {
 };
 
 export const deleteComment: RequestHandler = async (req, res) => {
-  const userId = req.user.id;
-  const { comment } = req;
+  const { comment, user } = req;
 
-  if (comment.userId !== userId) {
+  if (comment.userId !== user.id || user.role === 'GUEST') {
     res.status(403).json({ message: 'Unauthorized' });
     return;
   }

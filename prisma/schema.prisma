@@ -37,7 +37,7 @@ model User {
 
 model OAuth {
   id       String @id
-  user     User   @relation(fields: [userId], references: [id])
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId   Int    @unique
   provider String
 }
@@ -52,7 +52,7 @@ model Post {
   likedBy   User[]    @relation("PostLiked")
   comment   Comment[] @relation("PostComment")
 
-  user   User @relation("PostCreated", fields: [userId], references: [id])
+  user   User @relation("PostCreated", fields: [userId], references: [id], onDelete: Cascade)
   userId Int
 
   notif_donotuse Notification[]
@@ -67,7 +67,7 @@ model Comment {
   updatedAt DateTime @updatedAt
   likedBy   User[]   @relation("CommentLiked")
 
-  user   User @relation("CommentCreated", fields: [userId], references: [id])
+  user   User @relation("CommentCreated", fields: [userId], references: [id], onDelete: Cascade)
   userId Int
   post   Post @relation("PostComment", fields: [postId], references: [id], onDelete: Cascade)
   postId Int
@@ -87,7 +87,7 @@ model Notification {
    * Subject
    */
   actorId Int
-  actor   User @relation(fields: [actorId], references: [id])
+  actor   User @relation(fields: [actorId], references: [id], onDelete: Cascade)
 
   /**
    * Resources

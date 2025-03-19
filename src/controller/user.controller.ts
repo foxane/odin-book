@@ -34,6 +34,7 @@ export const getAllUser: RequestHandler = async (req, res) => {
   const users = await prisma.user.findMany({
     ...userUtils.createUserFilter(req.query),
 
+    orderBy: { lastSeen: 'desc' },
     include: {
       _count: { select: { follower: true, following: true } },
       follower: { where: { id: req.user.id } },

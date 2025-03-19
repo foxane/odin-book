@@ -12,6 +12,9 @@
     "docker:logs": "docker logs -f odinbook-api",
     "docker:start": "npm run docker:build && npm run docker:run && npm run docker:logs"
   },
+  "prisma": {
+    "seed": "bun run prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/client": "^6.5.0",
     "@supabase/storage-js": "^2.7.1",
