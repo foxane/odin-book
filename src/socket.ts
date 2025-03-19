@@ -84,23 +84,32 @@ export const initializeSocket = (server: HTTPServer) => {
      */
 
     socket.on('createChat', async (targetId, ack) => {
+      /**
+       * Check if chat exist
+       */
       let chat = await prisma.chat.findFirst({
         where: { member: { every: { id: { in: [targetId, user.id] } } } },
       });
 
+      /**
+       * Create new chat room
+       */
       if (!chat) {
         chat = await prisma.chat.create({
           data: { member: { connect: [{ id: targetId }, { id: user.id }] } },
         });
       }
 
-      const data = await prisma.chat.findUniqueOrThrow({
+      /**
+       * Creating chat summary, chat is definitely exist at this point
+       */
+      const rawChatSummary = await prisma.chat.findUniqueOrThrow({
         where: { id: chat.id },
         include: {
           // Other user
           member: {
             where: { id: { not: user.id } },
-            select: { id: true, name: true, avatar: true },
+            select: { id: true, name: true, avatar: true, lastSeen: true },
           },
 
           // Last message
@@ -127,10 +136,10 @@ export const initializeSocket = (server: HTTPServer) => {
       });
 
       const result: ChatSummary = {
-        id: data.id,
-        lastMessage: data.message[0] ?? null,
-        otherUser: data.member[0],
-        unreadCount: data._count.message,
+        id: rawChatSummary.id,
+        lastMessage: rawChatSummary.message[0] ?? null,
+        otherUser: rawChatSummary.member[0],
+        unreadCount: rawChatSummary._count.message,
       };
 
       ack(result);
